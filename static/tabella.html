@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabella Turni – Gestione Turni</title>
+<style>
+  :root { --bg:#0F172A; --card:#1E293B; --card2:#263348; --border:#334155; --text:#E2E8F0; --muted:#94A3B8; --accent:#3B82F6; --green:#10B981; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+  
+   
+  
+  
+  
+  
+  
+
+  .container { max-width:800px; margin:32px auto; padding:0 24px; display:flex; flex-direction:column; gap:24px; }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:24px; }
+  .card h2 { font-size:1rem; font-weight:700; margin-bottom:6px; }
+  .card p { font-size:0.85rem; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+
+  label { display:block; font-size:0.78rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; margin-top:14px; }
+  select, input[type=date], input[type=number] {
+    width:100%; background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:10px 14px; font-size:0.9rem; outline:none;
+  }
+  select:focus, input:focus { border-color:var(--accent); }
+
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+  /* Anteprima settimane */
+  .preview-box { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:16px; }
+  .preview-box h3 { font-size:0.82rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; }
+  .preview-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px; }
+  .preview-week-label { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+  .preview-week-label span { text-align:center; font-size:0.65rem; color:var(--muted); font-weight:700; }
+  .preview-day { text-align:center; padding:5px 2px; border-radius:6px; font-size:0.75rem; font-weight:700; background:var(--card); color:var(--text); }
+  .preview-day.empty { color:var(--border); }
+  .preview-day.start { outline:2px solid var(--accent); }
+  .week-
+
+  .btn-apply { width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; margin-top:20px; }
+  .btn-apply:hover { background:#2563EB; }
+  .btn-apply:disabled { background:var(--border); cursor:not-allowed; }
+
+  .result-ok { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); color:#34D399; border-radius:10px; padding:16px; text-align:center; font-weight:700; margin-top:16px; display:none; }
+  .result-ok.show { display:block; }
+
+  .empty-state { text-align:center; padding:40px; color:var(--muted); }
+  .tipo-tabs { display:flex; gap:8px; margin-bottom:20px; }
+  .tipo-tab { padding:8px 20px; border-radius:20px; cursor:pointer; font-size:0.85rem; font-weight:600; border:1px solid var(--border); color:var(--muted); background:var(--card2); }
+  .tipo-tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+  /* Colori turni */
+  .t-M,.t-M1,.t-M2,.t-M3 { background:#1E40AF; }
+  .t-P  { background:#B45309; }
+  .t-N  { background:#4338CA; }
+  .t-RC { background:#065F46; }
+  .t-R  { background:#991B1B; }
+  .t-ROT,.t-RF,.t-MAL,.t-F { background:#374151; color:var(--muted); }
+
+  
+  
+  
+  
+  
+
+  
+  @media (max-width:768px) {
+     
+     
+    .container { padding:0 12px; margin:16px auto; padding-bottom:80px; }
+    .form-grid, .form-grid-3 { grid-template-columns:1fr; }
+    
+  }
+
+  
+  
+  
+  
+  
+  
+  @media (max-width: 768px) {
+    
+  }
+  
+  
+  
+  
+  @media (max-width:768px) {  }
+
+  
+  
+  /* Titolo in contenitore a larghezza fissa: nessuno spostamento al cambio pagina */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  @media (max-width: 768px) {
+    
+    
+    
+    
+    
+  }
+
+
+  /* ── BOTTOM NAV MOBILE ── */
+  .bottom-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: var(--card); border-top: 1px solid var(--border);
+    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  }
+  .bottom-nav-inner {
+    display: flex; justify-content: space-around; align-items: stretch;
+  }
+  .bottom-nav a {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: var(--muted); text-decoration: none; font-size: 0.6rem;
+    font-weight: 600; padding: 4px 6px; border-radius: 6px; flex: 1;
+    text-align: center; min-width: 0;
+  }
+  .bottom-nav a.active { color: var(--accent); }
+  .bottom-nav a span.icon { font-size: 1.2rem; line-height: 1; }
+  #adminMobileBtn { display: none; color: #F59E0B !important; }
+  @media (max-width: 768px) {
+    .bottom-nav { display: block; }
+    body { padding-bottom: 64px; }
+  }
+
+
+  /* ── HEADER ── */
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    height: 56px;
+    padding: 0 20px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 20;
+    flex-shrink: 0;
+  }
+  .page-title {
+    width: 230px; min-width: 230px; max-width: 230px;
+    font-size: 1.05rem; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; flex-shrink: 0;
+  }
+  .page-title span { color: var(--accent); }
+  .top-nav { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; }
+  .top-nav a {
+    color: var(--muted); text-decoration: none; font-size: 0.82rem;
+    padding: 5px 10px; border-radius: 8px; background: var(--card2);
+    white-space: nowrap; line-height: 1; transition: color .15s, background .15s;
+  }
+  .top-nav a:hover { color: var(--text); background: #2d3f55; }
+  .top-nav a.nav-active {
+    color: var(--text); background: #2d3f55;
+    cursor: default; opacity: 0.85;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .top-nav a#adminNavLink { display: none; color: #F59E0B; }
+  .header-controls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .header-controls select, .header-controls button {
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 5px 10px;
+    font-size: 0.82rem; cursor: pointer; height: 32px;
+  }
+  .header-controls button:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-logout {
+    background: rgba(239,68,68,.15); color: #FCA5A5;
+    border: 1px solid rgba(239,68,68,.3); border-radius: 8px;
+    padding: 5px 12px; font-size: 0.82rem; cursor: pointer;
+    height: 32px; white-space: nowrap;
+  }
+  .btn-logout:hover { background: #EF4444; color: white; }
+  .user-label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  @media (max-width: 768px) {
+    header { height: 48px; padding: 0 12px; gap: 8px; }
+    .page-title { width: auto; min-width: 0; max-width: 160px; font-size: 0.9rem; }
+    .top-nav { display: none !important; }
+    .user-label { display: none; }
+    .header-controls select { display: none; }
+    .header-controls button { padding: 4px 8px; font-size: 0.78rem; }
+    .btn-logout { padding: 4px 8px; font-size: 0.78rem; }
+  }
+
+
+  /* ── USER DROPDOWN ── */
+  .user-menu { position:relative; }
+  .user-btn {
+    display:flex; align-items:center; gap:6px;
+    background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:5px 10px;
+    font-size:0.82rem; cursor:pointer; height:32px;
+    transition:background .15s;
+  }
+  .user-btn:hover { background:#2d3f55; }
+  .user-btn .avatar {
+    width:20px; height:20px; border-radius:50%;
+    background:var(--accent); color:white;
+    font-size:0.65rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .user-dropdown {
+    display:none; position:absolute; right:0; top:calc(100% + 6px);
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; min-width:200px; z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,.4); overflow:hidden;
+  }
+  .user-dropdown.open { display:block; }
+  .ud-header {
+    padding:12px 14px; background:var(--card2);
+    border-bottom:1px solid var(--border);
+    font-size:0.78rem; color:var(--muted);
+  }
+  .ud-header strong { display:block; color:var(--text); font-size:0.9rem; margin-bottom:2px; }
+  .ud-item {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px; font-size:0.85rem; cursor:pointer;
+    color:var(--text); transition:background .1s;
+  }
+  .ud-item:hover { background:var(--card2); }
+  .ud-item.danger { color:#FCA5A5; }
+  .ud-item.danger:hover { background:rgba(239,68,68,.1); }
+  .ud-sep { height:1px; background:var(--border); margin:2px 0; }
+
+  /* ── MODAL ACCOUNT ── */
+  .acc-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:300;
+    align-items:center; justify-content:center;
+  }
+  .acc-overlay.open { display:flex; }
+  .acc-modal {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:28px; width:400px; max-width:95vw;
+  }
+  .acc-modal h2 { font-size:1rem; font-weight:700; margin-bottom:20px; }
+  .acc-field { margin-bottom:14px; }
+  .acc-field label {
+    display:block; font-size:0.75rem; color:var(--muted);
+    font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px;
+  }
+  .acc-field input {
+    width:100%; background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:10px 12px;
+    font-size:0.9rem; outline:none; transition:border-color .15s;
+  }
+  .acc-field input:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.15); }
+  .acc-msg { font-size:0.82rem; margin:10px 0; min-height:18px; }
+  .acc-actions { display:flex; gap:10px; margin-top:20px; }
+  .acc-btn {
+    flex:1; padding:10px; border-radius:8px; border:none;
+    font-size:0.9rem; font-weight:600; cursor:pointer;
+  }
+  .acc-btn-primary { background:var(--accent); color:white; }
+  .acc-btn-primary:hover { background:#2563EB; }
+  .acc-btn-cancel { background:var(--card2); color:var(--muted); border:1px solid var(--border); }
+
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  :hover::-webkit-scrollbar-thumb { background: var(--border); }
+  html:hover { scrollbar-color: var(--border) transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="page-title">📋 Tabella <span>Turni</span></div>
+          <nav class="top-nav">
+    <a href="/">📅 Calendario</a>
+    <a href="/riepilogo.html">📊 Riepilogo</a>
+    <a href="/bustapaga.html">💶 Busta Paga</a>
+    <a href="/turni-team.html">👥 Team</a>
+    <a href="/admin.html" id="adminNavLink">🔧 Admin</a>
+  </nav>
+  <div class="header-controls">
+
+        <div class="user-menu">
+      <button class="user-btn" onclick="toggleUserMenu(event)" id="userBtn">
+        <div class="avatar" id="userAvatar">?</div>
+        <span id="userNameLabel">—</span>
+        <span style="font-size:0.65rem;color:var(--muted)">▼</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="ud-header">
+          <strong id="udName">—</strong>
+          <span id="udUsername"></span>
+        </div>
+        <div class="ud-item" onclick="window.location.href='/impostazioni.html'">👤 Impostazioni account</div>
+        <div class="ud-sep"></div>
+        <div class="ud-item danger" onclick="logout()">↩ Esci</div>
+      </div>
+    </div>
+
+    <!-- Modal account / cambio password -->
+    <div class="acc-overlay" id="accOverlay" onclick="if(event.target===this)closeAccModal()">
+      <div class="acc-modal">
+        <h2>🔑 Impostazioni account</h2>
+        <div class="acc-field">
+          <label>Password attuale</label>
+          <input type="password" id="accPwdOld" placeholder="••••••••">
+        </div>
+        <div class="acc-field">
+          <label>Nuova password</label>
+          <input type="password" id="accPwdNew" placeholder="min 6 caratteri">
+        </div>
+        <div class="acc-field">
+          <label>Conferma nuova password</label>
+          <input type="password" id="accPwdConfirm" placeholder="ripeti la nuova password">
+        </div>
+        <div class="acc-msg" id="accMsg"></div>
+        <div class="acc-actions">
+          <button class="acc-btn acc-btn-cancel" onclick="closeAccModal()">Annulla</button>
+          <button class="acc-btn acc-btn-primary" onclick="doChangePwd()">Salva password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="card" id="mainCard">
+    <h2>📋 Applica tabella turni</h2>
+    <p>Seleziona una tabella, il giorno di inizio e la settimana da cui partire. Il sistema compilerà automaticamente i tuoi turni fino al 31 dicembre.</p>
+
+    <div class="tipo-tabs">
+      <div class="tipo-tab active" onclick="filterTipo('tutti',this)">Tutte</div>
+      <div class="tipo-tab" onclick="filterTipo('telefonisti',this)">📞 Telefonisti</div>
+      <div class="tipo-tab" onclick="filterTipo('capisala',this)">👔 Capisala</div>
+    </div>
+
+    <label>Seleziona tabella</label>
+    <select id="selTabella" onchange="onTabChange()">
+      <option value="">— Scegli una tabella —</option>
+    </select>
+
+    <div id="formApplica" style="display:none">
+      <div class="form-grid">
+        <div>
+          <label>Giorno di inizio</label>
+          <input type="date" id="dataInizio" onchange="onDataChange()">
+          <div id="giornoRilevato" style="font-size:0.78rem;color:var(--accent);margin-top:5px;height:18px"></div>
+        </div>
+        <div>
+          <label>Giorno di fine</label>
+          <input type="date" id="dataFine" onchange="updatePreview()">
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div>
+          <label>Settimana di inizio (nella tabella)</label>
+          <select id="selSettimana" onchange="updatePreview()"></select>
+        </div>
+      </div>
+
+      <div class="preview-box" id="previewBox" style="display:none">
+        <h3>📅 Anteprima — prime 3 settimane</h3>
+        <div id="previewContent"></div>
+      </div>
+
+      <button class="btn-apply" id="btnApplica" onclick="applica()">
+        ✅ Applica tabella al calendario
+      </button>
+      <div class="result-ok" id="resultOk"></div>
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <p>Nessuna tabella disponibile.<br>Chiedi all'amministratore di crearne una.</p>
+    </div>
+  </div>
+
+  <div class="card" id="adminLink" style="display:none">
+    <p style="margin:0">Sei admin — <a href="/admin.html" style="color:var(--accent)">vai alla gestione tabelle →</a></p>
+  </div>
+</div>
+
+<script>
+const GIORNI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const TURNO_COLORS = {M:'#1E40AF',M1:'#1D4ED8',M2:'#2563EB',M3:'#3B82F6',P:'#B45309',N:'#4338CA',RC:'#065F46',R:'#991B1B',ROT:'#374151',RF:'#374151',MAL:'#F97316',F:'#0F766E'};
+
+let allTabelle = [];
+let tipoFiltro = 'tutti';
+
+function getToken() { return localStorage.getItem('token'); }
+function getNome()  { return localStorage.getItem('nome') || ''; }
+function logout()   { localStorage.clear(); window.location.href='/login.html'; }
+
+const _origFetch = window.fetch.bind(window);
+window.fetch = function(url, opts={}) {
+  const token = getToken();
+  if (token && typeof url==='string' && url.startsWith('/api/')) {
+    opts.headers = {...(opts.headers||{}), 'Authorization':'Bearer '+token};
+  }
+  return _origFetch(url, opts).then(res => {
+    if (res.status===401 && url.startsWith('/api/')) { logout(); throw new Error(); }
+    return res;
+  });
+};
+
+function filterTipo(tipo, el) {
+  tipoFiltro = tipo;
+  document.querySelectorAll('.tipo-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderSelector();
+}
+
+function renderSelector() {
+  const sel = document.getElementById('selTabella');
+  const filtered = tipoFiltro==='tutti' ? allTabelle : allTabelle.filter(t=>t.tipo===tipoFiltro);
+  sel.innerHTML = '<option value="">— Scegli una tabella —</option>' +
+    filtered.map(t=>`<option value="${t.id}">${t.tipo==='telefonisti'?'📞':'👔'} ${t.nome} (${t.num_settimane} sett.)</option>`).join('');
+  document.getElementById('formApplica').style.display = 'none';
+  document.getElementById('previewBox').style.display = 'none';
+}
+
+// Restituisce 0=lun ... 6=dom dalla stringa "YYYY-MM-DD"
+function dowFromDate(dateStr) {
+  // Usiamo T12:00:00 per evitare problemi di timezone
+  const d = new Date(dateStr + 'T12:00:00');
+  return (d.getDay() + 6) % 7; // JS: 0=dom → converti 0=lun
+}
+
+const GIORNI_NOMI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+
+function onDataChange() {
+  const dataInizio = document.getElementById('dataInizio').value;
+  if (!dataInizio) return;
+  const dow = dowFromDate(dataInizio);
+  document.getElementById('giornoRilevato').textContent =
+    `📅 ${dataInizio} è un ${GIORNI_NOMI[dow]}`;
+  updatePreview();
+}
+
+async function onTabChange() {
+  const id = document.getElementById('selTabella').value;
+  if (!id) { document.getElementById('formApplica').style.display='none'; return; }
+
+  const tab = await fetch(`/api/admin/tabelle/${id}`).then(r=>r.json());
+
+  // Popola settimane
+  const selSett = document.getElementById('selSettimana');
+  selSett.innerHTML = Array.from({length: tab.num_settimane}, (_,i)=>
+    `<option value="${i+1}">Settimana ${i+1}</option>`).join('');
+
+  // Default: oggi come inizio, fine anno come fine
+  const oggi = new Date().toISOString().slice(0,10);
+  const fineAnno = new Date().getFullYear() + '-12-31';
+  document.getElementById('dataInizio').value = oggi;
+  document.getElementById('dataFine').value = fineAnno;
+
+  // Mostra il giorno rilevato
+  const dow = dowFromDate(oggi);
+  document.getElementById('giornoRilevato').textContent =
+    `📅 ${oggi} è un ${GIORNI_NOMI[dow]}`;
+
+  document.getElementById('formApplica').style.display = 'block';
+  updatePreview();
+}
+
+function updatePreview() {
+  const id = document.getElementById('selTabella').value;
+  if (!id) return;
+  const dataInizio = document.getElementById('dataInizio').value;
+  if (!dataInizio) return;
+
+  fetch(`/api/admin/tabelle/${id}`).then(r=>r.json()).then(tab => {
+    const settimane = tab.turni_json || tab.turni || [];
+    const numSett = settimane.length;
+    if (!numSett) return;
+
+    const settInizio = parseInt(document.getElementById('selSettimana').value) - 1; // 0-based
+    // Giorno della settimana rilevato automaticamente dalla data
+    const giornoInizio = dowFromDate(dataInizio); // 0=lun
+
+    // Posizione assoluta nella sequenza linearizzata della tabella
+    const totPos = numSett * 7;
+    let pos = (settInizio * 7 + giornoInizio) % totPos;
+
+    let html = '';
+    let dataStr = dataInizio;
+
+    for (let riga = 0; riga < 3; riga++) {
+      // Calcola data fine settimana (6 giorni dopo)
+      const dFine = new Date(dataStr + 'T12:00:00');
+      dFine.setDate(dFine.getDate() + 6);
+      const dataFineW = dFine.toISOString().slice(0,10);
+
+      html += `<div class="week-header">Giorni ${riga*7+1}–${riga*7+7} &nbsp;(${dataStr} → ${dataFineW})</div>`;
+
+      // Header giorni: partendo dal giorno reale della settimana
+      const hdr = [];
+      for (let d = 0; d < 7; d++) hdr.push(GIORNI[(giornoInizio + d) % 7]);
+      html += '<div class="preview-week-label">' + hdr.map(g=>`<span>${g}</span>`).join('') + '</div>';
+      html += '<div class="preview-week">';
+
+      for (let d = 0; d < 7; d++) {
+        const p = (pos + d) % totPos;
+        const s = Math.floor(p / 7) % numSett;
+        const g = p % 7;
+        const turno = ((settimane[s] || [])[g] || '').trim().split(' ')[0] || '';
+        const color = TURNO_COLORS[turno] || 'var(--card)';
+        const isStart = riga === 0 && d === 0;
+        html += `<div class="preview-day ${isStart ? 'start' : ''}" style="background:${color}">${turno || '—'}</div>`;
+      }
+
+      html += '</div>';
+      pos = (pos + 7) % totPos;
+
+      // Avanza di 7 giorni
+      const nd = new Date(dataStr + 'T12:00:00');
+      nd.setDate(nd.getDate() + 7);
+      dataStr = nd.toISOString().slice(0, 10);
+    }
+
+    document.getElementById('previewContent').innerHTML = html;
+    document.getElementById('previewBox').style.display = 'block';
+  });
+}
+
+async function applica() {
+  const id = parseInt(document.getElementById('selTabella').value);
+  const dataInizio = document.getElementById('dataInizio').value;
+  const dataFine   = document.getElementById('dataFine').value;
+  const settimanaInizio = parseInt(document.getElementById('selSettimana').value);
+
+  if (!dataInizio) { alert('Seleziona un giorno di inizio'); return; }
+  if (!dataFine)   { alert('Seleziona un giorno di fine'); return; }
+  if (dataFine < dataInizio) { alert('Il giorno di fine deve essere dopo il giorno di inizio'); return; }
+
+  // Il giorno della settimana viene rilevato automaticamente dalla data
+  const giornoInizio = dowFromDate(dataInizio);
+  const annoFine = parseInt(dataFine.slice(0,4));
+
+  if (!confirm(`Applicare la tabella dal ${dataInizio} fino al ${dataFine}?\n\nI turni esistenti verranno sovrascritti.`)) return;
+  if (!confirm('Ultima conferma: sovrascrivere i turni nel calendario?')) return;
+
+  const btn = document.getElementById('btnApplica');
+  btn.disabled = true; btn.textContent = '⏳ Applicazione in corso...';
+
+  const res = await fetch('/api/tabella/applica', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      tab_id: id,
+      data_inizio: dataInizio,
+      data_fine: dataFine,
+      settimana_inizio: settimanaInizio,
+      giorno_inizio: giornoInizio,
+      anno_fine: annoFine
+    })
+  }).then(r=>r.json());
+
+  btn.disabled = false; btn.textContent = '✅ Applica tabella al calendario';
+
+  const ok = document.getElementById('resultOk');
+  ok.textContent = `✅ Fatto! Inseriti ${res.inseriti} turni nel calendario. Vai al calendario per verificare.`;
+  ok.classList.add('show');
+  setTimeout(()=>ok.classList.remove('show'), 6000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+
+
+(async function() {
+  if (!getToken()) { window.location.href='/login.html'; return; }
+  try {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me || !me.id) { logout(); return; }
+    // user label handled by menu
+    
+    // Aggiorna user menu
+    const nome = me.nome || me.username || '';
+    const initiali = nome.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+    const el = document.getElementById('userNameLabel'); if(el) el.textContent = nome.split(' ')[0];
+    const av = document.getElementById('userAvatar'); if(av) av.textContent = initiali || '?';
+    const ud = document.getElementById('udName'); if(ud) ud.textContent = nome;
+    const uu = document.getElementById('udUsername'); if(uu) uu.textContent = me.username;
+        if (me.is_admin) {
+      const lnk = document.getElementById('adminNavLink');
+      if (lnk) { lnk.style.setProperty('display', 'inline-block', 'important'); }
+      const mbl = document.getElementById('adminMobileBtn');
+      if (mbl) { mbl.style.setProperty('display', 'flex', 'important'); }
+      localStorage.setItem('is_admin', 'true');
+    }
+    allTabelle = await fetch('/api/admin/tabelle').then(r=>r.json());
+    if (allTabelle.length===0) document.getElementById('emptyState').style.display='block';
+    renderSelector();
+  } catch(e) { console.error('Auth error:', e); logout(); }
+})();
+
+// ── KEEP-ALIVE: pinga il server ogni 5 minuti per non farlo addormentare ──
+setInterval(async () => {
+  try { await fetch('/api/config'); } catch(e) {}
+}, 5 * 60 * 1000);
+
+
+function openAccModal() { window.location.href='/impostazioni.html'; }
+
+// ── USER MENU ────────────────────────────────────────────────────────────────
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('userDropdown')?.classList.remove('open');
+});
+
+// ── ACCOUNT MODAL ─────────────────────────────────────────────────────────────
+function openAccModal() {
+  document.getElementById('userDropdown')?.classList.remove('open');
+  document.getElementById('accOverlay').classList.add('open');
+  ['accPwdOld','accPwdNew','accPwdConfirm'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  const msg = document.getElementById('accMsg'); if(msg){msg.textContent='';msg.style.color='';}
+  setTimeout(() => document.getElementById('accPwdOld')?.focus(), 100);
+}
+function closeAccModal() {
+  document.getElementById('accOverlay').classList.remove('open');
+}
+async function doChangePwd() {
+  const old = document.getElementById('accPwdOld').value;
+  const nw  = document.getElementById('accPwdNew').value;
+  const cnf = document.getElementById('accPwdConfirm').value;
+  const msg = document.getElementById('accMsg');
+  msg.textContent = '';
+  if (!old || !nw || !cnf) { msg.textContent='⚠️ Compila tutti i campi'; msg.style.color='#F59E0B'; return; }
+  if (nw.length < 6)       { msg.textContent='⚠️ Minimo 6 caratteri'; msg.style.color='#F59E0B'; return; }
+  if (nw !== cnf)          { msg.textContent='⚠️ Le password non coincidono'; msg.style.color='#EF4444'; return; }
+  const res = await fetch('/api/auth/change-password', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ password_attuale: old, nuova_password: nw })
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if (res.ok) {
+    msg.textContent='✅ Password cambiata!'; msg.style.color='#34D399';
+    setTimeout(closeAccModal, 1500);
+  } else {
+    msg.textContent='❌ ' + (res.detail||'Password attuale non corretta'); msg.style.color='#EF4444';
+  }
+}
+
+</script>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner"><a href="/"  class="active"><span class="icon">🗓</span><span>Turni</span></a><a href="/riepilogo.html"><span class="icon">📊</span><span>Riepilogo</span></a><a href="/bustapaga.html"><span class="icon">💶</span><span>Busta</span></a><a href="#" onclick="openAccModal();return false"><span class="icon">👤</span><span>Account</span></a><a href="/admin.html" id="adminMobileBtn"><span class="icon">🔧</span><span>Admin</span></a></div></nav>
+</body>
+</html>

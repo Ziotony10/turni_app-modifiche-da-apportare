@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Gestione Turni</title>
+<style>
+  :root { --bg:#0F172A; --card:#1E293B; --card2:#263348; --border:#334155; --text:#E2E8F0; --muted:#94A3B8; --accent:#3B82F6; --red:#EF4444; --green:#10B981; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+  
+   
+  
+  
+  
+  
+  
+
+  .container { max-width:1000px; margin:28px auto; padding:0 24px; display:flex; flex-direction:column; gap:24px; }
+  .section-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .section-head { padding:14px 20px; background:var(--card2); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
+  .section-body { padding:20px; }
+
+  table { width:100%; border-collapse:collapse; }
+  th { padding:10px 14px; font-size:0.75rem; color:var(--muted); text-align:left; border-bottom:1px solid var(--border); font-weight:600; text-transform:uppercase; }
+  td { padding:10px 14px; border-bottom:1px solid var(--border); font-size:0.875rem; }
+  tr:last-child td { border-bottom:none; }
+
+  .badge-admin { background:rgba(59,130,246,.15); color:#60A5FA; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; }
+  .badge-user  { background:var(--card2); color:var(--muted); padding:2px 8px; border-radius:4px; font-size:0.75rem; }
+
+  .btn { padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-size:0.82rem; font-weight:600; }
+  .btn-sm { padding:4px 10px; font-size:0.78rem; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-primary:hover { background:#2563EB; }
+  .btn-warn { background:rgba(245,158,11,.15); color:#F59E0B; border:1px solid rgba(245,158,11,.3); }
+  .btn-warn:hover { background:#F59E0B; color:white; }
+  .btn-danger { background:rgba(239,68,68,.15); color:#FCA5A5; border:1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover { background:#EF4444; color:white; }
+
+  /* Tabella editor */
+  .tab-editor { display:none; }
+  .tab-editor.open { display:block; }
+  .week-grid { display:grid; grid-template-columns: repeat(7,1fr); gap:6px; margin-bottom:6px; }
+  .week-label { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:4px; }
+  .week-label span { text-align:center; font-size:0.68rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+  .week-num { font-size:0.72rem; color:var(--muted); margin-bottom:6px; font-weight:700; }
+  .week-block { border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; background:var(--card2); }
+
+  /* Day cell: bottone colorato cliccabile */
+  .day-cell {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    cursor:pointer; border-radius:8px; padding:6px 2px;
+    border:2px solid transparent; transition:all .12s; user-select:none;
+    min-height:54px; justify-content:center;
+  }
+  .day-cell:hover { border-color:rgba(255,255,255,.2); }
+  .day-cell.selected { border-color:white; }
+  .day-cell .dc-label { font-size:0.65rem; color:rgba(255,255,255,.6); font-weight:700; }
+  .day-cell .dc-turno { font-size:0.82rem; font-weight:800; color:white; }
+  .day-cell.empty-cell { background:var(--card); border-color:var(--border); }
+  .day-cell.empty-cell .dc-turno { color:var(--border); }
+
+  /* Picker popup */
+  .turno-picker {
+    position:fixed; z-index:200; background:var(--card);
+    border:1px solid var(--border); border-radius:12px;
+    padding:12px; display:flex; flex-wrap:wrap; gap:6px;
+    max-width:260px; box-shadow:0 8px 32px rgba(0,0,0,.6);
+  }
+  .tp-btn {
+    padding:6px 10px; border-radius:6px; border:none; cursor:pointer;
+    font-size:0.78rem; font-weight:700; color:white; min-width:44px; text-align:center;
+  }
+  .tp-btn:hover { opacity:.85; }
+  .tp-clear { background:var(--card2); color:var(--muted); border:1px solid var(--border); }
+
+  label { display:block; font-size:0.78rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px; }
+  input[type=text], input[type=number], select { width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 12px; font-size:0.9rem; outline:none; }
+  input:focus, select:focus { border-color:var(--accent); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:16px; }
+
+  .loading { text-align:center; padding:40px; color:var(--muted); }
+  .alert-admin { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#FCA5A5; border-radius:8px; padding:14px; text-align:center; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    height: 56px;
+    padding: 0 20px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 20;
+    flex-shrink: 0;
+  }
+  .page-title {
+    width: 230px; min-width: 230px; max-width: 230px;
+    font-size: 1.05rem; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; flex-shrink: 0;
+  }
+  .page-title span { color: var(--accent); }
+  .top-nav { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; }
+  .top-nav a {
+    color: var(--muted); text-decoration: none; font-size: 0.82rem;
+    padding: 5px 10px; border-radius: 8px; background: var(--card2);
+    white-space: nowrap; line-height: 1; transition: color .15s, background .15s;
+  }
+  .top-nav a:hover { color: var(--text); background: #2d3f55; }
+  .top-nav a.nav-active {
+    color: var(--text); background: #2d3f55;
+    cursor: default; opacity: 0.85;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .top-nav a#adminNavLink { display: none; color: #F59E0B; }
+  .header-controls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .header-controls select, .header-controls button {
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 5px 10px;
+    font-size: 0.82rem; cursor: pointer; height: 32px;
+  }
+  .header-controls button:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-logout {
+    background: rgba(239,68,68,.15); color: #FCA5A5;
+    border: 1px solid rgba(239,68,68,.3); border-radius: 8px;
+    padding: 5px 12px; font-size: 0.82rem; cursor: pointer;
+    height: 32px; white-space: nowrap;
+  }
+  .btn-logout:hover { background: #EF4444; color: white; }
+  .user-label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  @media (max-width: 768px) {
+    header { height: 48px; padding: 0 12px; gap: 8px; }
+    .page-title { width: auto; min-width: 0; max-width: 160px; font-size: 0.9rem; }
+    .top-nav { display: none !important; }
+    .user-label { display: none; }
+    .header-controls select { display: none; }
+    .header-controls button { padding: 4px 8px; font-size: 0.78rem; }
+    .btn-logout { padding: 4px 8px; font-size: 0.78rem; }
+    /* Container */
+    .container { padding: 10px; }
+    /* Tabella utenti mobile: card per ogni utente */
+    table { display: block; }
+    thead { display: none; }
+    tbody { display: block; }
+    tr { display: block; background: var(--card2); border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
+    td { display: block; padding: 4px 0; font-size: 0.85rem; border: none; }
+    td:first-child { font-weight: 700; color: var(--text); font-size: 0.88rem; }
+    td[style*="display:flex"], td[style*="display: flex"] { display: flex !important; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+    /* Tabella tabelle turni */
+    .tab-editor { font-size: 0.8rem; }
+    .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .form-row { grid-template-columns: 1fr !important; }
+  }
+
+
+  /* ── USER DROPDOWN ── */
+  .user-menu { position:relative; }
+  .user-btn {
+    display:flex; align-items:center; gap:6px;
+    background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:5px 10px;
+    font-size:0.82rem; cursor:pointer; height:32px;
+    transition:background .15s;
+  }
+  .user-btn:hover { background:#2d3f55; }
+  .user-btn .avatar {
+    width:20px; height:20px; border-radius:50%;
+    background:var(--accent); color:white;
+    font-size:0.65rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .user-dropdown {
+    display:none; position:absolute; right:0; top:calc(100% + 6px);
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; min-width:200px; z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,.4); overflow:hidden;
+  }
+  .user-dropdown.open { display:block; }
+  .ud-header {
+    padding:12px 14px; background:var(--card2);
+    border-bottom:1px solid var(--border);
+    font-size:0.78rem; color:var(--muted);
+  }
+  .ud-header strong { display:block; color:var(--text); font-size:0.9rem; margin-bottom:2px; }
+  .ud-item {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px; font-size:0.85rem; cursor:pointer;
+    color:var(--text); transition:background .1s;
+  }
+  .ud-item:hover { background:var(--card2); }
+  .ud-item.danger { color:#FCA5A5; }
+  .ud-item.danger:hover { background:rgba(239,68,68,.1); }
+  .ud-sep { height:1px; background:var(--border); margin:2px 0; }
+
+  /* ── MODAL ACCOUNT ── */
+  .acc-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:300;
+    align-items:center; justify-content:center;
+  }
+  .acc-overlay.open { display:flex; }
+  .acc-modal {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:28px; width:400px; max-width:95vw;
+  }
+  .acc-modal h2 { font-size:1rem; font-weight:700; margin-bottom:20px; }
+  .acc-field { margin-bottom:14px; }
+  .acc-field label {
+    display:block; font-size:0.75rem; color:var(--muted);
+    font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px;
+  }
+  .acc-field input {
+    width:100%; background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:10px 12px;
+    font-size:0.9rem; outline:none; transition:border-color .15s;
+  }
+  .acc-field input:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.15); }
+  .acc-msg { font-size:0.82rem; margin:10px 0; min-height:18px; }
+  .acc-actions { display:flex; gap:10px; margin-top:20px; }
+  .acc-btn {
+    flex:1; padding:10px; border-radius:8px; border:none;
+    font-size:0.9rem; font-weight:600; cursor:pointer;
+  }
+  .acc-btn-primary { background:var(--accent); color:white; }
+  .acc-btn-primary:hover { background:#2563EB; }
+  .acc-btn-cancel { background:var(--card2); color:var(--muted); border:1px solid var(--border); }
+
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  :hover::-webkit-scrollbar-thumb { background: var(--border); }
+  html:hover { scrollbar-color: var(--border) transparent; }
+</style>
+</head>
+<body>
+<header>
+  <div class="page-title">🔧 <span>Admin</span></div>
+          <nav class="top-nav">
+    <a href="/">📅 Calendario</a>
+    <a href="/riepilogo.html">📊 Riepilogo</a>
+    <a href="/bustapaga.html">💶 Busta Paga</a>
+    <a href="/turni-team.html">👥 Team</a>
+    <a href="#" onclick="return false;" class="nav-active" id="adminNavLink">🔧 Admin</a>
+  </nav>
+  <div class="header-controls">
+
+        <div class="user-menu">
+      <button class="user-btn" onclick="toggleUserMenu(event)" id="userBtn">
+        <div class="avatar" id="userAvatar">?</div>
+        <span id="userNameLabel">—</span>
+        <span style="font-size:0.65rem;color:var(--muted)">▼</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="ud-header">
+          <strong id="udName">—</strong>
+          <span id="udUsername"></span>
+        </div>
+        <div class="ud-item" onclick="window.location.href='/impostazioni.html'">👤 Impostazioni account</div>
+        <div class="ud-sep"></div>
+        <div class="ud-item danger" onclick="logout()">↩ Esci</div>
+      </div>
+    </div>
+
+    <!-- Modal account / cambio password -->
+    <div class="acc-overlay" id="accOverlay" onclick="if(event.target===this)closeAccModal()">
+      <div class="acc-modal">
+        <h2>🔑 Impostazioni account</h2>
+        <div class="acc-field">
+          <label>Password attuale</label>
+          <input type="password" id="accPwdOld" placeholder="••••••••">
+        </div>
+        <div class="acc-field">
+          <label>Nuova password</label>
+          <input type="password" id="accPwdNew" placeholder="min 6 caratteri">
+        </div>
+        <div class="acc-field">
+          <label>Conferma nuova password</label>
+          <input type="password" id="accPwdConfirm" placeholder="ripeti la nuova password">
+        </div>
+        <div class="acc-msg" id="accMsg"></div>
+        <div class="acc-actions">
+          <button class="acc-btn acc-btn-cancel" onclick="closeAccModal()">Annulla</button>
+          <button class="acc-btn acc-btn-primary" onclick="doChangePwd()">Salva password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container" id="container">
+  <div class="loading">Verifica accesso...</div>
+</div>
+
+<script>
+function getToken()  { return localStorage.getItem('token'); }
+function getNome()   { return localStorage.getItem('nome') || ''; }
+function isAdmin()   { return localStorage.getItem('is_admin') === 'true'; }
+function logout()    { localStorage.clear(); window.location.href='/login.html'; }
+
+const _origFetch = window.fetch.bind(window);
+window.fetch = function(url, opts={}) {
+  const token = getToken();
+  if (token && typeof url==='string' && url.startsWith('/api/')) {
+    opts.headers = {...(opts.headers||{}), 'Authorization': 'Bearer '+token };
+  }
+  return _origFetch(url, opts).then(res => {
+    if (res.status===401 && url.startsWith('/api/')) { logout(); throw new Error(); }
+    return res;
+  });
+};
+
+const GIORNI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+
+let tabelle = [];
+let editingTab = null;
+
+async function init() {
+  if (!getToken()) { window.location.href='/login.html'; return; }
+  const me = await fetch('/api/auth/me').then(r=>r.json()).catch(()=>null);
+  if (!me || !me.is_admin) {
+    document.getElementById('container').innerHTML = '<div class="alert-admin">⛔ Accesso riservato agli amministratori.</div>';
+    return;
+  }
+  const nome = me.nome || me.username || '';
+  const initiali = nome.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+  const el1 = document.getElementById('userNameLabel'); if(el1) el1.textContent = nome.split(' ')[0];
+  const el2 = document.getElementById('userAvatar');    if(el2) el2.textContent = initiali || '?';
+  const el3 = document.getElementById('udName');        if(el3) el3.textContent = nome;
+  const el4 = document.getElementById('udUsername');    if(el4) el4.textContent = me.username;
+  const lnk = document.getElementById('adminNavLink');
+  if (lnk) lnk.style.setProperty('display', 'inline-block', 'important');
+  localStorage.setItem('is_admin', 'true');
+  await loadAll();
+}
+
+async function loadAll() {
+  const [utenti, tabs] = await Promise.all([
+    fetch('/api/admin/utenti').then(r=>r.json()),
+    fetch('/api/admin/tabelle').then(r=>r.json()),
+  ]);
+  tabelle = tabs;
+  renderUtenti(utenti);
+  renderTabelle(tabs);
+}
+
+// ── UTENTI ──────────────────────────────────────────────────────────────────
+function renderUtenti(utenti) {
+  const existing = document.getElementById('sec-utenti');
+  const html = `
+  <div class="section-card" id="sec-utenti">
+    <div class="section-head"><span>👥 Utenti registrati</span></div>
+    <table>
+      <thead><tr><th>Utente</th><th>Ruolo</th><th>Azioni</th></tr></thead>
+      <tbody>
+        ${utenti.map(u=>`<tr>
+          <td><strong>${u.username}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${u.nome||'—'}</span></td>
+          <td>${u.is_admin ? '<span class="badge-admin">Admin</span>' : (u.is_editor ? '<span style="background:rgba(16,185,129,.15);color:#6EE7B7;border:1px solid rgba(16,185,129,.3);padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">Editor</span>' : '<span class="badge-user">Utente</span>')}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-warn" onclick="toggleAdmin(${u.id},'${u.username}',${u.is_admin})">${u.is_admin?'Rimuovi admin':'Rendi admin'}</button>
+            <button class="btn btn-sm" style="background:rgba(99,102,241,.15);color:#A5B4FC;border:1px solid rgba(99,102,241,.3)" onclick="resetPassword(${u.id},'${u.username}')">🔑 Reset</button>
+            <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#6EE7B7;border:1px solid rgba(16,185,129,.3)" onclick="toggleEditor(${u.id},'${u.username}',${u.is_editor||false})">${u.is_editor?'✏️ Editor':'➕ Editor'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">🗑</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+  if (existing) existing.outerHTML = html;
+  else document.getElementById('container').insertAdjacentHTML('afterbegin', html);
+}
+
+async function toggleAdmin(id, username, isAdm) {
+  if (!confirm(`${isAdm?'Rimuovere':'Rendere'} admin "${username}"?`)) return;
+  await fetch(`/api/admin/utenti/${id}/admin`, {method:'POST'});
+  await loadAll();
+}
+
+async function toggleEditor(id, username, isEditor) {
+  if (isEditor) { alert(`"${username}" è già editor. Per rimuovere il ruolo contatta l'amministratore di sistema.`); return; }
+  if (!confirm(`Assegnare "${username}" come editor del team turni?`)) return;
+  const res = await fetch(`/api/admin/utenti/${id}/editor`, {method:'POST'}).then(r=>r.json());
+  if (res.ok) { loadAll(); } else alert('Errore: ' + (res.detail||'sconosciuto'));
+}
+
+async function resetPassword(id, username) {
+  const nuova = prompt(`Nuova password per "${username}" (min 6 caratteri):`);
+  if (!nuova) return;
+  if (nuova.length < 6) { alert('Password troppo corta (min 6 caratteri)'); return; }
+  if (!confirm(`Confermi reset password per "${username}"?`)) return;
+  const res = await fetch(`/api/admin/utenti/${id}/reset-password`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({nuova_password: nuova})
+  }).then(r=>r.json());
+  if (res.ok) alert(`✅ Password di "${username}" aggiornata!`);
+  else alert('Errore: ' + (res.detail || 'sconosciuto'));
+}
+
+async function deleteUser(id, username) {
+  if (!confirm(`Eliminare l'utente "${username}" e tutti i suoi dati?`)) return;
+  if (!confirm(`Ultima conferma: eliminare definitivamente "${username}"?`)) return;
+  await fetch(`/api/admin/utenti/${id}`, {method:'DELETE'});
+  await loadAll();
+}
+
+// ── TABELLE TURNI ─────────────────────────────────────────────────────────────
+function renderTabelle(tabs) {
+  const existing = document.getElementById('sec-tabelle');
+  const rows = tabs.map(t=>`<tr>
+    <td><strong>${t.nome}</strong></td>
+    <td>${t.tipo==='telefonisti'?'📞 Telefonisti':'👔 Capisala'}</td>
+    <td>${t.num_settimane} sett.</td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="editTabella(${t.id})">Modifica</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTabella(${t.id},'${t.nome}')">🗑 Elimina</button>
+    </td>
+  </tr>`).join('');
+
+  const html = `
+  <div class="section-card" id="sec-tabelle">
+    <div class="section-head">
+      <span>📋 Tabelle turni</span>
+      <button class="btn btn-sm btn-primary" onclick="newTabella()">+ Nuova tabella</button>
+    </div>
+    <div class="section-body">
+      ${tabs.length===0 ? '<p style="color:var(--muted);text-align:center;padding:20px">Nessuna tabella. Creane una!</p>' : ''}
+      ${tabs.length>0 ? `<table><thead><tr><th>Nome</th><th>Tipo</th><th>Settimane</th><th>Azioni</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+      <div class="tab-editor" id="tabEditor"></div>
+    </div>
+  </div>`;
+
+  if (existing) existing.outerHTML = html;
+  else document.getElementById('container').appendChild(Object.assign(document.createElement('div'),{innerHTML:html}).firstElementChild);
+}
+
+const TURNI_COLORS = {
+  M:'#1E40AF', M1:'#1D4ED8', M2:'#2563EB', M3:'#3B82F6',
+  P:'#B45309', N:'#4338CA', RC:'#065F46', R:'#991B1B',
+  ROT:'#5B21B6', RF:'#831843', MAL:'#C2410C', F:'#0F766E',
+  'F-P':'#166534', 'F-N':'#1E3A5F'
+};
+const TURNI_LIST = ['M','M1','M2','M3','P','N','RC','R','ROT','RF','MAL','F','F-P','F-N'];
+
+// Stato tabella in memoria: array[settimana][giorno] = codice turno
+let editorData = [];
+
+function makeDayCell(sett, giorno, turno) {
+  const color = turno ? (TURNI_COLORS[turno] || '#374151') : '';
+  const bg = turno ? color : 'var(--card)';
+  return `<div class="day-cell ${turno?'':'empty-cell'}" 
+    style="background:${bg}" 
+    id="dc-${sett}-${giorno}"
+    onclick="openPicker(${sett},${giorno},event)">
+    <span class="dc-turno">${turno || '—'}</span>
+  </div>`;
+}
+
+function buildWeeksHtml(numSett) {
+  let html = '';
+  for (let s = 0; s < numSett; s++) {
+    html += `<div class="week-block">
+      <div class="week-num">Settimana ${s+1}</div>
+      <div class="week-label">${GIORNI.map(g=>`<span>${g}</span>`).join('')}</div>
+      <div class="week-grid">
+        ${GIORNI.map((_,d) => makeDayCell(s, d, editorData[s]?.[d] || '')).join('')}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+function refreshDayCell(sett, giorno) {
+  const el = document.getElementById(`dc-${sett}-${giorno}`);
+  if (!el) return;
+  const turno = editorData[sett]?.[giorno] || '';
+  const color = turno ? (TURNI_COLORS[turno] || '#374151') : '';
+  el.style.background = turno ? color : 'var(--card)';
+  el.className = `day-cell ${turno?'':'empty-cell'}`;
+  el.querySelector('.dc-turno').textContent = turno || '—';
+}
+
+let pickerTarget = null;
+
+function openPicker(sett, giorno, evt) {
+  closePicker();
+  pickerTarget = {sett, giorno};
+
+  const picker = document.createElement('div');
+  picker.className = 'turno-picker';
+  picker.id = 'turnoPicker';
+
+  // Bottoni turni
+  picker.innerHTML = TURNI_LIST.map(t =>
+    `<button class="tp-btn" style="background:${TURNI_COLORS[t]||'#374151'}" onclick="selectTurno('${t}')">${t}</button>`
+  ).join('') + `<button class="tp-btn tp-clear" onclick="selectTurno('')">✕ Vuoto</button>`;
+
+  document.body.appendChild(picker);
+
+  // Posiziona vicino al click
+  const rect = evt.currentTarget.getBoundingClientRect();
+  let top = rect.bottom + 6, left = rect.left;
+  if (left + 260 > window.innerWidth) left = window.innerWidth - 270;
+  if (top + 200 > window.innerHeight) top = rect.top - 210;
+  picker.style.top = top + 'px';
+  picker.style.left = left + 'px';
+
+  // Chiudi cliccando fuori
+  setTimeout(() => document.addEventListener('click', closePicker, {once:true}), 50);
+  evt.stopPropagation();
+}
+
+function selectTurno(turno) {
+  if (!pickerTarget) return;
+  const {sett, giorno} = pickerTarget;
+  if (!editorData[sett]) editorData[sett] = Array(7).fill('');
+  editorData[sett][giorno] = turno;
+  refreshDayCell(sett, giorno);
+  closePicker();
+}
+
+function closePicker() {
+  const p = document.getElementById('turnoPicker');
+  if (p) p.remove();
+  pickerTarget = null;
+}
+
+function newTabella() {
+  editingTab = null;
+  editorData = [];
+  showEditor({nome:'', tipo:'telefonisti', num_settimane:13, turni:[]});
+}
+
+async function editTabella(id) {
+  const tab = await fetch(`/api/admin/tabelle/${id}`).then(r=>r.json());
+  editingTab = id;
+  editorData = [];
+  showEditor(tab);
+}
+
+function showEditor(tab) {
+  const editor = document.getElementById('tabEditor');
+  editor.classList.add('open');
+  const numSett = tab.num_settimane || 13;
+  const turni = tab.turni_json || tab.turni || [];
+
+  // Carica dati in editorData
+  editorData = [];
+  for (let s = 0; s < numSett; s++) {
+    editorData[s] = Array(7).fill('').map((_, d) => (turni[s]?.[d] || '').trim().split(' ')[0] || '');
+  }
+
+  editor.innerHTML = `
+    <hr style="border-color:var(--border);margin:20px 0">
+    <h3 style="margin-bottom:16px;font-size:1rem">${editingTab ? 'Modifica tabella' : 'Nuova tabella'}</h3>
+    <div class="form-row">
+      <div><label>Nome tabella</label><input type="text" id="tabNome" value="${tab.nome||''}" placeholder="es. Telefonisti 2026"></div>
+      <div><label>Tipo</label><select id="tabTipo" onchange="updateNumSett()">
+        <option value="telefonisti" ${tab.tipo==='telefonisti'?'selected':''}>📞 Telefonisti (13 sett.)</option>
+        <option value="capisala" ${tab.tipo==='capisala'?'selected':''}>👔 Capisala (12 sett.)</option>
+      </select></div>
+      <div><label>N° settimane</label><input type="number" id="tabNumSett" value="${numSett}" min="1" max="20" onchange="rebuildWeeks()"></div>
+    </div>
+    <div id="weeksContainer">${buildWeeksHtml(numSett)}</div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="saveTabella()">💾 Salva tabella</button>
+      <button class="btn" style="background:var(--card2);color:var(--muted)" onclick="closeEditor()">Annulla</button>
+    </div>`;
+}
+
+function updateNumSett() {
+  const tipo = document.getElementById('tabTipo').value;
+  const n = tipo === 'telefonisti' ? 13 : 12;
+  document.getElementById('tabNumSett').value = n;
+  rebuildWeeks();
+}
+
+function rebuildWeeks() {
+  const n = parseInt(document.getElementById('tabNumSett').value) || 13;
+  // Preserva dati esistenti, estendi/tronca
+  const newData = [];
+  for (let s = 0; s < n; s++) {
+    newData[s] = editorData[s] || Array(7).fill('');
+  }
+  editorData = newData;
+  document.getElementById('weeksContainer').innerHTML = buildWeeksHtml(n);
+}
+
+function getTurniFromEditor() {
+  return editorData.map(sett => (sett || Array(7).fill('')));
+}
+
+async function saveTabella() {
+  const nome = document.getElementById('tabNome').value.trim();
+  const tipo = document.getElementById('tabTipo').value;
+  const num_settimane = parseInt(document.getElementById('tabNumSett').value);
+  if (!nome) { alert('Inserisci un nome per la tabella'); return; }
+  const turni = getTurniFromEditor();
+  const body = { nome, tipo, num_settimane, turni };
+  const url = editingTab ? `/api/admin/tabelle/${editingTab}` : '/api/admin/tabelle';
+  const method = editingTab ? 'PUT' : 'POST';
+  await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  closeEditor();
+  await loadAll();
+}
+
+function closeEditor() {
+  const ed = document.getElementById('tabEditor');
+  if (ed) { ed.classList.remove('open'); ed.innerHTML=''; }
+  editingTab = null;
+}
+
+async function deleteTabella(id, nome) {
+  if (!confirm(`Eliminare la tabella "${nome}"?`)) return;
+  await fetch(`/api/admin/tabelle/${id}`, {method:'DELETE'});
+  await loadAll();
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+(async function() {
+  if (!getToken()) { window.location.href='/login.html'; return; }
+  try {
+    const me = await fetch('/api/auth/me').then(r=>r.json());
+    if (!me || !me.is_admin) {
+      document.getElementById('container').innerHTML='<div class="alert-admin">⛔ Accesso riservato agli amministratori.</div>';
+      return;
+    }
+    const nome = me.nome || me.username || '';
+    const initiali = nome.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+    const el1 = document.getElementById('userNameLabel'); if(el1) el1.textContent = nome.split(' ')[0];
+    const el2 = document.getElementById('userAvatar');    if(el2) el2.textContent = initiali || '?';
+    const el3 = document.getElementById('udName');        if(el3) el3.textContent = nome;
+    const el4 = document.getElementById('udUsername');    if(el4) el4.textContent = me.username;
+    const lnk = document.getElementById('adminNavLink');
+    if (lnk) lnk.style.setProperty('display','inline-block','important');
+    localStorage.setItem('is_admin', 'true');
+    await loadAll();
+  } catch(e) { logout(); }
+})();
+
+// ── USER MENU ────────────────────────────────────────────────────────────────
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('userDropdown')?.classList.remove('open');
+});
+
+// ── ACCOUNT MODAL ─────────────────────────────────────────────────────────────
+function openAccModal() {
+  document.getElementById('userDropdown')?.classList.remove('open');
+  document.getElementById('accOverlay').classList.add('open');
+  ['accPwdOld','accPwdNew','accPwdConfirm'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  const msg = document.getElementById('accMsg'); if(msg){msg.textContent='';msg.style.color='';}
+  setTimeout(() => document.getElementById('accPwdOld')?.focus(), 100);
+}
+function closeAccModal() {
+  document.getElementById('accOverlay').classList.remove('open');
+}
+async function doChangePwd() {
+  const old = document.getElementById('accPwdOld').value;
+  const nw  = document.getElementById('accPwdNew').value;
+  const cnf = document.getElementById('accPwdConfirm').value;
+  const msg = document.getElementById('accMsg');
+  msg.textContent = '';
+  if (!old || !nw || !cnf) { msg.textContent='⚠️ Compila tutti i campi'; msg.style.color='#F59E0B'; return; }
+  if (nw.length < 6)       { msg.textContent='⚠️ Minimo 6 caratteri'; msg.style.color='#F59E0B'; return; }
+  if (nw !== cnf)          { msg.textContent='⚠️ Le password non coincidono'; msg.style.color='#EF4444'; return; }
+  const res = await fetch('/api/auth/change-password', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ password_attuale: old, nuova_password: nw })
+  }).then(r=>r.json()).catch(()=>({ok:false}));
+  if (res.ok) {
+    msg.textContent='✅ Password cambiata!'; msg.style.color='#34D399';
+    setTimeout(closeAccModal, 1500);
+  } else {
+    msg.textContent='❌ ' + (res.detail||'Password attuale non corretta'); msg.style.color='#EF4444';
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accesso – Gestione Turni</title>
+<style>
+  :root { --bg:#0F172A; --card:#1E293B; --card2:#263348; --border:#334155; --text:#E2E8F0; --muted:#94A3B8; --accent:#3B82F6; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif;
+         min-height:100vh; display:flex; align-items:center; justify-content:center; }
+
+  .card {
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:40px 36px; width:380px; max-width:95vw;
+  }
+  .logo { text-align:center; margin-bottom:28px; }
+  .logo h1 { font-size:1.6rem; font-weight:800; }
+  .logo h1 span { color:var(--accent); }
+  .logo p { color:var(--muted); font-size:0.85rem; margin-top:4px; }
+
+  .tabs { display:flex; gap:0; margin-bottom:28px; background:var(--card2);
+          border-radius:8px; padding:4px; }
+  .tab { flex:1; padding:8px; text-align:center; border-radius:6px; cursor:pointer;
+         font-size:0.9rem; font-weight:600; color:var(--muted); transition:all .15s; }
+  .tab.active { background:var(--accent); color:white; }
+
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:0.78rem; font-weight:600; color:var(--muted);
+          text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+  input { width:100%; background:var(--card2); border:1px solid var(--border);
+          color:var(--text); border-radius:8px; padding:10px 14px; font-size:0.95rem;
+          outline:none; transition:border-color .15s; }
+  input:focus { border-color:var(--accent); }
+
+  .btn-main { width:100%; background:var(--accent); color:white; border:none;
+              border-radius:10px; padding:12px; font-size:1rem; font-weight:700;
+              cursor:pointer; margin-top:8px; transition:background .15s; }
+  .btn-main:hover { background:#2563EB; }
+
+  .err { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+         color:#FCA5A5; border-radius:8px; padding:10px 14px; font-size:0.85rem;
+         margin-bottom:14px; display:none; }
+  .err.show { display:block; }
+
+  @media (max-width: 768px) {
+    header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+    header h1 { font-size: 1rem; }
+    nav { display: none; }
+    .header-right { gap: 6px; }
+    .user-label { display: none; }
+    .btn-logout { padding: 5px 10px; font-size: 0.78rem; }
+    .nav-controls { gap: 6px; }
+    .nav-controls select, .nav-controls button { padding: 5px 10px; font-size: 0.8rem; }
+    .container { padding: 12px; }
+    .fields-grid { grid-template-columns: 1fr !important; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 6px 5px; }
+    .busta-info { grid-template-columns: 1fr 1fr !important; }
+    .ore-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .fiscal-grid { grid-template-columns: 1fr 1fr !important; }
+    .netto-card { flex-direction: column; gap: 8px; text-align: center; }
+    .netto-val { font-size: 1.8rem; }
+    .riepilogo-table { font-size: 0.7rem; }
+    .card { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>🗓 Gestione <span>Turni</span></h1>
+    <p>Accedi per gestire i tuoi turni</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabLogin" onclick="showTab('login')">Accedi</div>
+    <div class="tab" id="tabReg" onclick="showTab('register')">Registrati</div>
+  </div>
+
+  <div id="errMsg" class="err"></div>
+
+  <!-- LOGIN -->
+  <div id="formLogin">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="il tuo username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-main" onclick="doLogin()">Entra →</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="formRegister" style="display:none">
+    <div class="field">
+      <label>Username <span style="color:var(--muted);font-weight:400;font-size:0.78rem">(formato: nome.cognome)</span></label>
+      <input type="text" id="regUser" placeholder="es. mario.rossi"
+             oninput="this.value=this.value.toLowerCase().replace(/[^a-z.]/g,'')"
+             autocomplete="username">
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Solo lettere minuscole e punto. Scrivi il tuo <strong style="color:var(--text)">nome.cognome</strong> — es: mario.rossi</div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="regPass" placeholder="min 6 caratteri"
+             onkeydown="if(event.key==='Enter') doRegister()">
+    </div>
+    <button class="btn-main" onclick="doRegister()">Crea account →</button>
+  </div>
+</div>
+
+<script>
+function showTab(t) {
+  document.getElementById('formLogin').style.display    = t==='login'    ? '' : 'none';
+  document.getElementById('formRegister').style.display = t==='register' ? '' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active', t==='login');
+  document.getElementById('tabReg').classList.toggle('active', t==='register');
+  showErr('');
+}
+
+function showErr(msg) {
+  const el = document.getElementById('errMsg');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (!u || !p) { showErr('Inserisci username e password'); return; }
+  try {
+    const body = new URLSearchParams({ username: u, password: p });
+    const res = await fetch('/api/auth/login', { method:'POST', body });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.detail || 'Credenziali non corrette'); return; }
+    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('username', data.username);
+    localStorage.setItem('nome', data.nome || data.username);
+    window.location.href = '/';
+  } catch(e) { showErr('Errore di connessione'); }
+}
+
+async function doRegister() {
+  const u = document.getElementById('regUser').value.trim().toLowerCase();
+  const p = document.getElementById('regPass').value;
+  if (!u || !p) { showErr('Compila username e password'); return; }
+  // Valida formato nome.cognome
+  if (!/^[a-z]+\.[a-z]+$/.test(u)) {
+    showErr('Username non valido. Usa il formato nome.cognome (es. mario.rossi)');
+    return;
+  }
+  // Deriva il nome visualizzato dal username (mario.rossi → Mario Rossi)
+  const nome = u.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  try {
+    const res = await fetch('/api/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username:u, password:p, nome })
+    });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.detail || 'Errore registrazione'); return; }
+    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('username', data.username);
+    localStorage.setItem('nome', nome);
+    window.location.href = '/';
+  } catch(e) { showErr('Errore di connessione'); }
+}
+
+// Se già loggato vai direttamente alla home
+if (localStorage.getItem('token')) window.location.href = '/';
+</script>
+</body>
+</html>
