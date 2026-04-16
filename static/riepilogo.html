@@ -92,7 +92,6 @@
   .loading { text-align:center; padding:80px; color:var(--muted); font-size:1rem; }
 
   @media (max-width: 768px) {
-    .container { padding: 0; overflow-x: hidden; }
     /* Riepilogo tabella mobile */
     .riepilogo-table { font-size: 0.65rem; }
     .riepilogo-table th, .riepilogo-table td { padding: 6px 4px; }
@@ -104,59 +103,31 @@
     .riepilogo-table td.tot-col { min-width: 44px; }
   }
 
-  
-  
-  
-  
-  
-  
+  /* Titolo in contenitore a larghezza fissa: nessuno spostamento al cambio pagina */
 
-  
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-      /* Titolo in contenitore a larghezza fissa: nessuno spostamento al cambio pagina */
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-    /* ── BOTTOM NAV MOBILE ── */
+  /* ── BOTTOM NAV MOBILE ── */
   .bottom-nav {
     display: none;
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
     background: var(--card); border-top: 1px solid var(--border);
-    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+    padding: 6px 0 env(safe-area-inset-bottom, 8px);
   }
   .bottom-nav-inner {
     display: flex; justify-content: space-around; align-items: stretch;
   }
   .bottom-nav a {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    color: var(--muted); text-decoration: none; font-size: 0.6rem;
-    font-weight: 600; padding: 4px 6px; border-radius: 6px; flex: 1;
-    text-align: center; min-width: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    color: var(--muted); text-decoration: none; font-size: 0.65rem;
+    font-weight: 600; padding: 6px 4px; border-radius: 8px; flex: 1;
+    text-align: center; min-width: 0; margin: 0 2px; transition: color .15s;
   }
   .bottom-nav a.active { color: var(--accent); }
-  .bottom-nav a span.icon { font-size: 1.2rem; line-height: 1; }
+  .bottom-nav a span.icon { font-size: 1.35rem; line-height: 1.2; }
   #adminMobileBtn { display: none; color: #F59E0B !important; }
   @media (max-width: 768px) {
     .bottom-nav { display: block; }
-    body { padding-bottom: 64px; }
+    body { padding-bottom: 72px; }
   }
-
 
   /* ── HEADER ── */
   header {
@@ -286,21 +257,13 @@
   .acc-btn-primary:hover { background:#2563EB; }
   .acc-btn-cancel { background:var(--card2); color:var(--muted); border:1px solid var(--border); }
 
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
-  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-  :hover::-webkit-scrollbar-thumb { background: var(--border); }
-  html:hover { scrollbar-color: var(--border) transparent; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="page-title">📊 Riepilogo <span>Annuale</span></div>
-            <nav class="top-nav">
+          <nav class="top-nav">
     <a href="/">📅 Calendario</a>
     <a href="#" onclick="return false;" class="nav-active">📊 Riepilogo</a>
     <a href="/bustapaga.html">💶 Busta Paga</a>
@@ -595,7 +558,7 @@ function render(data) {
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 function getToken()  { return localStorage.getItem('token'); }
 function getNome()   { return localStorage.getItem('nome') || localStorage.getItem('username') || ''; }
-function logout()    { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); window.location.href='/login.html'; }
+function logout()    { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); localStorage.removeItem('is_admin'); window.location.href='/login.html'; }
 
 const _origFetch = window.fetch.bind(window);
 window.fetch = function(url, opts={}) {

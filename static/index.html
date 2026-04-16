@@ -877,7 +877,9 @@ async function loadRiepilogo() {
   const m = data[mese] || {};
 
   const oreOrd = (m.ore_diurne || 0) + (m.ore_notturne || 0);
-  const straoTot = (m.strao_diurno || 0) + (m.strao_notturno || 0);
+  const straoDiurni = (m.strao_diurno || 0) + (m.strao_fest_diurno || 0);
+  const straoNotturni = (m.strao_notturno || 0) + (m.strao_fest_notturno || 0);
+  const straoTot = straoDiurni + straoNotturni;
   const repTot = (m.reperibilita_feriale||0) + (m.reperibilita_semifestiva||0) + (m.reperibilita_festiva||0);
 
   document.getElementById('sidebar').innerHTML = `
@@ -895,8 +897,8 @@ async function loadRiepilogo() {
     <div class="stat-card">
       <h3>Straordinari</h3>
       <div class="stat-row highlight"><span>Totale strao</span><span>${fmtH(straoTot)}</span></div>
-      <div class="stat-row"><span>↳ Diurni</span><span>${fmtH(m.strao_diurno||0)}</span></div>
-      <div class="stat-row"><span>↳ Notturni</span><span>${fmtH(m.strao_notturno||0)}</span></div>
+      <div class="stat-row"><span>↳ Diurni</span><span>${fmtH(straoDiurni)}</span></div>
+      <div class="stat-row"><span>↳ Notturni</span><span>${fmtH(straoNotturni)}</span></div>
     </div>
 
     <div class="stat-card">
@@ -1334,7 +1336,7 @@ async function doChangePwd() {
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem('token'); }
 function getNome()  { return localStorage.getItem('nome') || localStorage.getItem('username') || ''; }
-function logout()   { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); window.location.href='/login.html'; }
+function logout()   { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); localStorage.removeItem('is_admin'); window.location.href='/login.html'; }
 
 // Inietta token in ogni fetch API
 const _origFetch = window.fetch.bind(window);

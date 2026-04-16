@@ -111,11 +111,11 @@
   .par-row span { font-size:0.78rem; color:var(--muted); white-space:nowrap; }
 
   /* ── BOTTOM NAV ── */
-  .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; background:var(--card); border-top:1px solid var(--border); padding:6px 0 env(safe-area-inset-bottom,6px); }
+  .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; background:var(--card); border-top:1px solid var(--border); padding:6px 0 env(safe-area-inset-bottom,8px); }
   .bottom-nav-inner { display:flex; justify-content:space-around; align-items:stretch; }
-  .bottom-nav a { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); text-decoration:none; font-size:0.6rem; font-weight:600; padding:4px 6px; flex:1; text-align:center; }
+  .bottom-nav a { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); text-decoration:none; font-size:0.65rem; font-weight:600; padding:6px 4px; flex:1; text-align:center; margin:0 2px; border-radius:8px; transition:color .15s; }
   .bottom-nav a.active { color:var(--accent); }
-  .bottom-nav a span.icon { font-size:1.2rem; line-height:1; }
+  .bottom-nav a span.icon { font-size:1.35rem; line-height:1.2; }
   #adminMobileBtn { display:none; color:#F59E0B !important; }
 
   /* ── MOBILE ── */
@@ -137,22 +137,21 @@
     th, td { padding:6px 5px; }
     .par-grid { grid-template-columns:1fr; }
     .bottom-nav { display:block; }
-    body { padding-bottom:64px; }
+    body { padding-bottom:72px; }
+  }
+
+  @media (max-width: 480px) {
+    .busta-info { grid-template-columns:1fr !important; }
+    .ore-grid { grid-template-columns:repeat(2,1fr) !important; }
+    .fiscal-grid { grid-template-columns:1fr !important; }
   }
 
   /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
-  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-  :hover::-webkit-scrollbar-thumb { background: var(--border); }
-  html:hover { scrollbar-color: var(--border) transparent; }
-
-  /* Scrollbar discreta */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
   * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
   *:hover { scrollbar-color: var(--border) transparent; }
 </style>
@@ -160,7 +159,7 @@
 <body>
 <header>
   <div class="page-title">💶 Busta <span>Paga</span></div>
-            <nav class="top-nav">
+          <nav class="top-nav">
     <a href="/">📅 Calendario</a>
     <a href="/riepilogo.html">📊 Riepilogo</a>
     <a href="#" onclick="return false;" class="nav-active">💶 Busta Paga</a>
@@ -487,7 +486,7 @@ initSelectors();
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem('token'); }
 function getNome()  { return localStorage.getItem('nome') || localStorage.getItem('username') || ''; }
-function logout()   { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); window.location.href='/login.html'; }
+function logout()   { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('nome'); localStorage.removeItem('is_admin'); window.location.href='/login.html'; }
 
 // Inietta token in ogni fetch API
 const _origFetch = window.fetch.bind(window);
@@ -583,6 +582,6 @@ async function doChangePwd() {
 </script>
 
 
-<nav class="bottom-nav"><div class="bottom-nav-inner"><a href="/"><span class="icon">🗓</span><span>Turni</span></a><a href="/riepilogo.html"><span class="icon">📊</span><span>Riepilogo</span></a><a href="/bustapaga.html"  class="active"><span class="icon">💶</span><span>Busta</span></a><a href="#" onclick="openAccModal();return false"><span class="icon">👤</span><span>Account</span></a><a href="/admin.html" id="adminMobileBtn"><span class="icon">🔧</span><span>Admin</span></a></div></nav>
+<nav class="bottom-nav"><div class="bottom-nav-inner"><a href="/"><span class="icon">🗓</span><span>Turni</span></a><a href="/riepilogo.html"><span class="icon">📊</span><span>Riepilogo</span></a><a href="/bustapaga.html"  class="active"><span class="icon">💶</span><span>Busta</span></a><a href="/turni-team.html"><span class="icon">👥</span><span>Team</span></a><a href="/impostazioni.html"><span class="icon">👤</span><span>Account</span></a><a href="/admin.html" id="adminMobileBtn"><span class="icon">🔧</span><span>Admin</span></a></div></nav>
 </body>
 </html>

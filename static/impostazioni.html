@@ -33,7 +33,7 @@
   .ud-item.danger { color:#FCA5A5; }
   .ud-item.danger:hover { background:rgba(239,68,68,.1); }
   .ud-sep { height:1px; background:var(--border); margin:2px 0; }
-  @media(max-width:768px) { .top-nav{display:none!important;} header{height:48px;padding:0 12px;} .page-title{min-width:0;font-size:0.9rem;} }
+  @media(max-width:768px) { .top-nav{display:none!important;} header{height:48px;padding:0 12px;} .page-title{min-width:0;font-size:0.9rem;} .container{padding:0 12px; margin:20px auto;} }
 
   /* ── CONTENUTO ── */
   .container { max-width:560px; margin:40px auto; padding:0 24px; display:flex; flex-direction:column; gap:20px; flex:1; }
@@ -60,26 +60,18 @@
   /* ── BOTTOM NAV ── */
   .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; background:var(--card); border-top:1px solid var(--border); padding:6px 0 env(safe-area-inset-bottom,6px); }
   .bottom-nav-inner { display:flex; justify-content:space-around; align-items:stretch; }
-  .bottom-nav a { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); text-decoration:none; font-size:0.6rem; font-weight:600; padding:4px 6px; flex:1; text-align:center; }
+  .bottom-nav a { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); text-decoration:none; font-size:0.65rem; font-weight:600; padding:6px 4px; flex:1; text-align:center; margin:0 2px; border-radius:8px; transition:color .15s; }
   .bottom-nav a.active { color:var(--accent); }
-  .bottom-nav a span.icon { font-size:1.2rem; line-height:1; }
+  .bottom-nav a span.icon { font-size:1.35rem; line-height:1.2; }
   #adminMobileBtn { display:none; color:#F59E0B !important; }
-  @media(max-width:768px) { .bottom-nav{display:block;} body{padding-bottom:64px;} }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
-  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-  :hover::-webkit-scrollbar-thumb { background: var(--border); }
-  html:hover { scrollbar-color: var(--border) transparent; }
+  @media(max-width:768px) { .bottom-nav{display:block;} body{padding-bottom:72px;} }
 </style>
 </head>
 <body>
 
 <header>
   <div class="page-title">👤 <span>Account</span></div>
-      <nav class="top-nav">
+    <nav class="top-nav">
     <a href="/">📅 Calendario</a>
     <a href="/riepilogo.html">📊 Riepilogo</a>
     <a href="/bustapaga.html">💶 Busta Paga</a>
@@ -138,13 +130,20 @@
   <a href="/"><span class="icon">🗓</span><span>Turni</span></a>
   <a href="/riepilogo.html"><span class="icon">📊</span><span>Riepilogo</span></a>
   <a href="/bustapaga.html"><span class="icon">💶</span><span>Busta</span></a>
+  <a href="/turni-team.html"><span class="icon">👥</span><span>Team</span></a>
   <a href="/impostazioni.html" class="active"><span class="icon">👤</span><span>Account</span></a>
   <a href="/admin.html" id="adminMobileBtn"><span class="icon">🔧</span><span>Admin</span></a>
 </div></nav>
 
 <script>
 function getToken() { return localStorage.getItem('token'); }
-function logout()   { localStorage.clear(); window.location.href='/login.html'; }
+function logout()   {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('nome');
+  localStorage.removeItem('is_admin');
+  window.location.href='/login.html';
+}
 
 const _origFetch = window.fetch.bind(window);
 window.fetch = function(url, opts={}) {

@@ -118,6 +118,15 @@
   }
   .btn-logout:hover { background: #EF4444; color: white; }
   .user-label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  @media (max-width: 768px) {
+    header { height: 48px; padding: 0 12px; gap: 8px; }
+    .page-title { width: auto; min-width: 0; max-width: 160px; font-size: 0.9rem; }
+    .top-nav { display: none !important; }
+    .user-label { display: none; }
+    .header-controls select { display: none; }
+    .header-controls button { padding: 4px 8px; font-size: 0.78rem; }
+    .btn-logout { padding: 4px 8px; font-size: 0.78rem; }
+  }
 
   /* ── USER DROPDOWN ── */
   .user-menu { position:relative; }
@@ -192,64 +201,110 @@
   .acc-btn-primary:hover { background:#2563EB; }
   .acc-btn-cancel { background:var(--card2); color:var(--muted); border:1px solid var(--border); }
 
-  /* ── STAT CARDS ── */
-  .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  .stat-card { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px; }
-  .stat-card .stat-val { font-size:1.8rem; font-weight:800; color:var(--text); line-height:1; }
-  .stat-card .stat-lbl { font-size:0.73rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
-  .stat-card .stat-icon { font-size:1.2rem; margin-bottom:4px; }
-  .stat-card.danger .stat-val { color:#EF4444; }
-  .stat-card.success .stat-val { color:#10B981; }
+  /* ── STATUS SISTEMA ── */
+  .status-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .status-item {
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:10px; padding:18px 16px; text-align:center;
+  }
+  .status-dot {
+    width:11px; height:11px; border-radius:50%;
+    display:inline-block; margin-right:6px; vertical-align:middle;
+    flex-shrink:0;
+  }
+  .dot-ok    { background:#10B981; box-shadow:0 0 7px rgba(16,185,129,.7); }
+  .dot-warn  { background:#F59E0B; box-shadow:0 0 7px rgba(245,158,11,.7); }
+  .dot-error { background:#EF4444; box-shadow:0 0 7px rgba(239,68,68,.7); }
+  .dot-loading { background:var(--muted); }
+  .status-label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:.06em; margin-bottom:10px; }
+  .status-row { display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:4px; }
+  .status-value { font-size:1.05rem; font-weight:700; }
+  .status-sub   { font-size:0.73rem; color:var(--muted); margin-top:4px; }
+  .refresh-btn  {
+    font-size:0.75rem; padding:4px 12px; border-radius:6px;
+    background:var(--card2); border:1px solid var(--border);
+    color:var(--muted); cursor:pointer; transition:all .15s;
+  }
+  .refresh-btn:hover { color:var(--text); border-color:var(--accent); }
 
-  /* ── HEALTH BAR ── */
-  .health-bar { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
-  .health-item { display:flex; align-items:center; gap:8px; font-size:0.85rem; }
-  .health-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-  .health-dot.green { background:#10B981; box-shadow:0 0 6px #10B981; }
-  .health-dot.red   { background:#EF4444; box-shadow:0 0 6px #EF4444; }
-  .health-dot.grey  { background:var(--muted); }
-  .health-dot.pulse { animation: pulse-dot 1.5s infinite; }
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .latency-badge { background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:2px 8px; font-size:0.78rem; color:var(--muted); font-family:monospace; }
-  .latency-badge.fast { color:#10B981; border-color:rgba(16,185,129,.3); }
-  .latency-badge.slow { color:#F59E0B; border-color:rgba(245,158,11,.3); }
+  /* ── LOG ACCESSI ── */
+  .log-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .log-table th { padding:9px 14px; color:var(--muted); font-size:0.7rem; text-transform:uppercase; border-bottom:1px solid var(--border); text-align:left; font-weight:700; letter-spacing:.04em; }
+  .log-table td { padding:9px 14px; border-bottom:1px solid var(--border); }
+  .log-table tr:last-child td { border-bottom:none; }
+  .log-table tr:hover td { background:rgba(255,255,255,.02); }
+  .badge-ok   { background:rgba(16,185,129,.15); color:#34D399; padding:2px 9px; border-radius:4px; font-size:0.72rem; font-weight:700; }
+  .badge-fail { background:rgba(239,68,68,.15);  color:#FCA5A5; padding:2px 9px; border-radius:4px; font-size:0.72rem; font-weight:700; }
+  .log-scroll { max-height:400px; overflow-y:auto; }
+  .log-scroll::-webkit-scrollbar { width:4px; }
+  .log-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .log-scroll::-webkit-scrollbar-track { background:transparent; }
 
-  /* ── LOG TABLE ── */
-  .log-badge-ok      { background:rgba(16,185,129,.15); color:#34D399; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:700; }
-  .log-badge-fallito { background:rgba(239,68,68,.15); color:#FCA5A5; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:700; }
-  .log-filter { display:flex; gap:8px; align-items:center; }
-  .log-filter select { width:auto; padding:3px 8px; height:28px; font-size:0.78rem; }
-  .mono { font-family:monospace; font-size:0.78rem; color:var(--muted); }
+  /* ── BOTTOM NAV MOBILE ── */
+  .bottom-nav {
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:50;
+    background:var(--card); border-top:1px solid var(--border);
+    padding:6px 0 env(safe-area-inset-bottom,8px);
+  }
+  .bottom-nav-inner { display:flex; justify-content:space-around; align-items:stretch; }
+  .bottom-nav a {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:var(--muted); text-decoration:none; font-size:0.65rem;
+    font-weight:600; padding:6px 4px; flex:1; text-align:center; min-width:0;
+    border-radius:8px; margin:0 2px; transition:color .15s;
+  }
+  .bottom-nav a.active { color:var(--accent); }
+  .bottom-nav a.admin-link { color:#F59E0B !important; }
+  .bottom-nav a span.icon { font-size:1.35rem; line-height:1.2; }
 
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background .2s; }
-  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-  :hover::-webkit-scrollbar-thumb { background: var(--border); }
-  html:hover { scrollbar-color: var(--border) transparent; }
+  /* ── MOBILE RESPONSIVE ── */
+  @media(max-width:768px) {
+    body { padding-bottom:72px; }
+    .bottom-nav { display:block; }
+    .container { padding:0 12px; margin:16px auto; gap:16px; }
+    .section-body { padding:12px; }
+    .section-head { padding:10px 14px; font-size:0.75rem; }
 
-  @media (max-width: 768px) {
-    header { height: 48px; padding: 0 12px; gap: 8px; }
-    .page-title { width: auto; min-width: 0; max-width: 160px; font-size: 0.9rem; }
-    .top-nav { display: none !important; }
-    .user-label { display: none; }
-    .header-controls select { display: none; }
-    .header-controls button { padding: 4px 8px; font-size: 0.78rem; }
-    .btn-logout { padding: 4px 8px; font-size: 0.78rem; }
-    .container { padding: 10px; }
-    table { display: block; }
-    thead { display: none; }
-    tbody { display: block; }
-    tr { display: block; background: var(--card2); border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
-    td { display: block; padding: 4px 0; font-size: 0.85rem; border: none; }
-    td:first-child { font-weight: 700; color: var(--text); font-size: 0.88rem; }
-    td[style*="display:flex"], td[style*="display: flex"] { display: flex !important; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-    .tab-editor { font-size: 0.8rem; }
-    .week-grid { grid-template-columns: repeat(4, 1fr) !important; }
-    .form-row { grid-template-columns: 1fr !important; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    .health-bar { gap: 12px; }
+    /* Status grid: 3 colonne → 1 col su mobile */
+    .status-grid { grid-template-columns:1fr; gap:10px; }
+    .status-item { padding:14px 12px; display:flex; align-items:center; gap:12px; text-align:left; }
+    .status-label { margin-bottom:2px; font-size:0.68rem; }
+    .status-row { justify-content:flex-start; margin-bottom:2px; }
+
+    /* Log accessi: nascondi colonne extra, scroll orizzontale */
+    .log-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .log-table { min-width:480px; }
+    .log-table th, .log-table td { padding:8px 10px; font-size:0.78rem; }
+
+    /* Tabella utenti su mobile */
+    table th, table td { padding:8px 10px; font-size:0.8rem; }
+    .btn-sm { padding:5px 8px; font-size:0.75rem; }
+
+    /* Form tabelle: 3 col → 1 col */
+    .form-row { grid-template-columns:1fr; gap:10px; }
+
+    /* Week grid: scroll orizzontale invece di comprimere */
+    .week-block { overflow-x:auto; -webkit-overflow-scrolling:touch; padding:10px; }
+    .week-grid { min-width:360px; }
+    .week-label { min-width:360px; }
+    .day-cell { min-height:44px; padding:4px 1px; }
+    .day-cell .dc-turno { font-size:0.72rem; }
+    .day-cell .dc-label { font-size:0.58rem; }
+
+    /* Turno picker: full-width dal basso su mobile */
+    .turno-picker {
+      position:fixed !important; bottom:72px !important; top:auto !important;
+      left:12px !important; right:12px !important; max-width:none !important;
+      width:auto !important;
+    }
+
+    /* Tabelle nascondi colonne non essenziali */
+    .log-table th:nth-child(4), .log-table td:nth-child(4),
+    .log-table th:nth-child(5), .log-table td:nth-child(5) { display:none; }
+  }
+
+  @media(max-width:480px) {
+    table th:nth-child(3), table td:nth-child(3) { display:none; }
   }
 </style>
 </head>
@@ -281,7 +336,6 @@
       </div>
     </div>
 
-    <!-- Modal account / cambio password -->
     <div class="acc-overlay" id="accOverlay" onclick="if(event.target===this)closeAccModal()">
       <div class="acc-modal">
         <h2>🔑 Impostazioni account</h2>
@@ -309,73 +363,19 @@
 
 <div class="container" id="container">
   <div class="loading">Verifica accesso...</div>
-
-  <!-- ── HEALTH / PING ──────────────────────────────────────────────────────── -->
-  <div class="section-card" id="sec-health" style="display:none">
-    <div class="section-head">
-      🏓 Stato Server & Database
-      <button class="btn btn-sm" style="background:var(--card);color:var(--muted);border:1px solid var(--border)" onclick="loadHealth()">↻ Aggiorna</button>
-    </div>
-    <div class="section-body">
-      <div class="health-bar" id="healthBar">
-        <div class="health-item"><div class="health-dot grey pulse" id="dotServer"></div><span id="lblServer">Controllo...</span></div>
-        <div class="health-item"><div class="health-dot grey pulse" id="dotDb"></div><span id="lblDb">DB...</span></div>
-        <div class="health-item">Latenza DB: <span class="latency-badge" id="lblLatency">—</span></div>
-        <div class="health-item" style="margin-left:auto;color:var(--muted);font-size:0.78rem" id="lblHealthTime"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── STATISTICHE ─────────────────────────────────────────────────────────── -->
-  <div class="section-card" id="sec-stats" style="display:none">
-    <div class="section-head">📊 Statistiche</div>
-    <div class="section-body">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" id="sUtenti">—</div><div class="stat-lbl">Utenti registrati</div></div>
-        <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val" id="sTurni">—</div><div class="stat-lbl">Voci turno salvate</div></div>
-        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="sTabelle">—</div><div class="stat-lbl">Tabelle turni</div></div>
-        <div class="stat-card"><div class="stat-icon">👤</div><div class="stat-val" id="sTeam">—</div><div class="stat-lbl">Operatori team attivi</div></div>
-        <div class="stat-card success"><div class="stat-icon">🔐</div><div class="stat-val" id="sLoginOggi">—</div><div class="stat-lbl">Accessi oggi</div></div>
-        <div class="stat-card danger"><div class="stat-icon">⛔</div><div class="stat-val" id="sLoginFalliti">—</div><div class="stat-lbl">Login falliti oggi</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── LOG ACCESSI ─────────────────────────────────────────────────────────── -->
-  <div class="section-card" id="sec-log-accessi" style="display:none">
-    <div class="section-head">
-      🔐 Log Accessi
-      <div class="log-filter">
-        <select id="logFilter" onchange="renderLogAccessi()">
-          <option value="tutti">Tutti</option>
-          <option value="ok">✅ Riusciti</option>
-          <option value="fallito">❌ Falliti</option>
-        </select>
-        <button class="btn btn-sm" style="background:var(--card);color:var(--muted);border:1px solid var(--border)" onclick="loadLogAccessi()">↻</button>
-      </div>
-    </div>
-    <div class="section-body" style="padding:0">
-      <div id="logAccessiBody"><div class="loading">Caricamento...</div></div>
-    </div>
-  </div>
-
-  <!-- ── LOG TEAM ────────────────────────────────────────────────────────────── -->
-  <div class="section-card" id="sec-log-team" style="display:none">
-    <div class="section-head">
-      📋 Log Modifiche Team
-      <button class="btn btn-sm" style="background:var(--card);color:var(--muted);border:1px solid var(--border)" onclick="loadLogTeam()">↻</button>
-    </div>
-    <div class="section-body" style="padding:0">
-      <div id="logTeamBody"><div class="loading">Caricamento...</div></div>
-    </div>
-  </div>
 </div>
 
 <script>
 function getToken()  { return localStorage.getItem('token'); }
 function getNome()   { return localStorage.getItem('nome') || ''; }
 function isAdmin()   { return localStorage.getItem('is_admin') === 'true'; }
-function logout()    { localStorage.clear(); window.location.href='/login.html'; }
+function logout()    {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('nome');
+  localStorage.removeItem('is_admin');
+  window.location.href='/login.html';
+}
 
 const _origFetch = window.fetch.bind(window);
 window.fetch = function(url, opts={}) {
@@ -394,36 +394,37 @@ const GIORNI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 let tabelle = [];
 let editingTab = null;
 
-async function init() {
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(async function() {
   if (!getToken()) { window.location.href='/login.html'; return; }
-  const me = await fetch('/api/auth/me').then(r=>r.json()).catch(()=>null);
-  if (!me || !me.is_admin) {
-    document.getElementById('container').innerHTML = '<div class="alert-admin">⛔ Accesso riservato agli amministratori.</div>';
-    return;
-  }
-  const nome = me.nome || me.username || '';
-  const initiali = nome.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
-  const el1 = document.getElementById('userNameLabel'); if(el1) el1.textContent = nome.split(' ')[0];
-  const el2 = document.getElementById('userAvatar');    if(el2) el2.textContent = initiali || '?';
-  const el3 = document.getElementById('udName');        if(el3) el3.textContent = nome;
-  const el4 = document.getElementById('udUsername');    if(el4) el4.textContent = me.username;
-  const lnk = document.getElementById('adminNavLink');
-  if (lnk) lnk.style.setProperty('display', 'inline-block', 'important');
-  localStorage.setItem('is_admin', 'true');
-
-  // Mostra le sezioni
-  ['sec-health','sec-stats','sec-log-accessi','sec-log-team'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = '';
-  });
-  // Rimuovi loading iniziale
-  const loadingEl = document.querySelector('#container > .loading');
-  if (loadingEl) loadingEl.remove();
-
-  await loadAll();
-}
+  try {
+    const me = await fetch('/api/auth/me').then(r=>r.json());
+    if (!me || !me.is_admin) {
+      document.getElementById('container').innerHTML='<div class="alert-admin">⛔ Accesso riservato agli amministratori.</div>';
+      return;
+    }
+    const nome = me.nome || me.username || '';
+    const initiali = nome.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+    const el1 = document.getElementById('userNameLabel'); if(el1) el1.textContent = nome.split(' ')[0];
+    const el2 = document.getElementById('userAvatar');    if(el2) el2.textContent = initiali || '?';
+    const el3 = document.getElementById('udName');        if(el3) el3.textContent = nome;
+    const el4 = document.getElementById('udUsername');    if(el4) el4.textContent = me.username;
+    const lnk = document.getElementById('adminNavLink');
+    if (lnk) lnk.style.setProperty('display','inline-block','important');
+    localStorage.setItem('is_admin', 'true');
+    await loadAll();
+  } catch(e) { logout(); }
+})();
 
 async function loadAll() {
+  const container = document.getElementById('container');
+  container.innerHTML = '';
+
+  // Render subito le card vuote (scheletro)
+  renderStatusCard();
+  renderLogsCard();
+  renderVisitsCard(); // ← AGGIUNGI
+
   const [utenti, tabs] = await Promise.all([
     fetch('/api/admin/utenti').then(r=>r.json()),
     fetch('/api/admin/tabelle').then(r=>r.json()),
@@ -431,13 +432,247 @@ async function loadAll() {
   tabelle = tabs;
   renderUtenti(utenti);
   renderTabelle(tabs);
-  // Nuove sezioni in parallelo
-  await Promise.all([
-    loadHealth(),
-    loadStats(),
-    loadLogAccessi(),
-    loadLogTeam(),
-  ]);
+
+  // Carica dati dinamici
+  loadStatus();
+  loadLoginLogs();
+  loadPageVisits(); // ← AGGIUNGI
+}
+
+// ── STATUS SISTEMA ────────────────────────────────────────────────────────────
+function renderStatusCard() {
+  const container = document.getElementById('container');
+  container.insertAdjacentHTML('beforeend', `
+  <div class="section-card" id="sec-status">
+    <div class="section-head">
+      <span>🟢 Status sistema</span>
+      <button class="refresh-btn" onclick="loadStatus();loadLoginLogs()">↻ Aggiorna</button>
+    </div>
+    <div class="section-body">
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Sito / API</div>
+          <div class="status-row">
+            <span class="status-dot dot-loading" id="dot-site"></span>
+            <span class="status-value" id="val-site">—</span>
+          </div>
+          <div class="status-sub" id="sub-site">In attesa...</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Database</div>
+          <div class="status-row">
+            <span class="status-dot dot-loading" id="dot-db"></span>
+            <span class="status-value" id="val-db">—</span>
+          </div>
+          <div class="status-sub" id="sub-db">In attesa...</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Latenza DB</div>
+          <div class="status-row">
+            <span class="status-dot dot-loading" id="dot-ping"></span>
+            <span class="status-value" id="val-ping">—</span>
+          </div>
+          <div class="status-sub" id="sub-ping">In attesa...</div>
+        </div>
+      </div>
+    </div>
+  </div>`);
+}
+
+async function loadStatus() {
+  // Reset a loading
+  ['site','db','ping'].forEach(k => {
+    const dot = document.getElementById(`dot-${k}`);
+    if (dot) dot.className = 'status-dot dot-loading';
+  });
+
+  const t0 = performance.now();
+  let data;
+  try {
+    data = await fetch('/api/admin/status').then(r => r.json());
+  } catch(e) {
+    data = { site: 'error', db: 'error', db_ms: -1, db_type: '—' };
+  }
+  const siteMs = Math.round(performance.now() - t0);
+
+  // Sito
+  const siteOk = data.site === 'ok';
+  setStatus('site',
+    siteOk ? 'ok' : 'error',
+    siteOk ? 'Online' : 'Errore',
+    `Risposta: ${siteMs} ms`
+  );
+
+  // Database
+  const dbOk = data.db === 'ok';
+  setStatus('db',
+    dbOk ? 'ok' : 'error',
+    dbOk ? 'Connesso' : 'Errore',
+    data.db_type || '—'
+  );
+
+  // Latenza DB
+  const ms = data.db_ms;
+  const pingClass = ms < 0 ? 'error' : ms < 100 ? 'ok' : ms < 400 ? 'warn' : 'error';
+  const pingLabel = ms < 0 ? 'N/A' : ms < 100 ? 'Ottima' : ms < 400 ? 'Lenta' : 'Critica';
+  setStatus('ping',
+    pingClass,
+    ms >= 0 ? `${ms} ms` : 'N/A',
+    pingLabel
+  );
+}
+
+function setStatus(key, cls, value, sub) {
+  const dot = document.getElementById(`dot-${key}`);
+  const val = document.getElementById(`val-${key}`);
+  const s   = document.getElementById(`sub-${key}`);
+  if (dot) dot.className = `status-dot dot-${cls}`;
+  if (val) val.textContent = value;
+  if (s)   s.textContent = sub;
+}
+
+// ── LOG ACCESSI ────────────────────────────────────────────────────────────────
+function renderLogsCard() {
+  const container = document.getElementById('container');
+  container.insertAdjacentHTML('beforeend', `
+  <div class="section-card" id="sec-logs">
+    <div class="section-head">
+      <span>🔐 Log accessi</span>
+      <span style="font-size:0.75rem;color:var(--muted)">Ultimi 100</span>
+    </div>
+    <div class="log-scroll">
+      <table class="log-table">
+        <thead><tr>
+          <th>Data / Ora</th>
+          <th>Username</th>
+          <th>IP</th>
+          <th>Esito</th>
+          <th>Browser</th>
+        </tr></thead>
+        <tbody id="logTableBody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Caricamento...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>`);
+}
+
+async function loadLoginLogs() {
+  const tbody = document.getElementById('logTableBody');
+  if (!tbody) return;
+
+  let logs;
+  try {
+    logs = await fetch('/api/admin/log-accessi?limit=100').then(r => r.json());
+  } catch(e) {
+    logs = [];
+  }
+
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Nessun accesso registrato</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = logs.map(l => {
+    const ts = (l.timestamp || '').toString().replace('T', ' ').slice(0, 19);
+    const ua = parseUA(l.user_agent || '');
+    const ipStyle = 'font-family:monospace;font-size:0.78rem;color:var(--muted)';
+    return `<tr>
+      <td style="color:var(--muted);font-size:0.8rem;white-space:nowrap">${ts}</td>
+      <td><strong>${l.username || '—'}</strong></td>
+      <td style="${ipStyle}">${l.ip || '—'}</td>
+      <td>${(l.esito === 'ok' || l.success) ? '<span class="badge-ok">✓ Successo</span>' : '<span class="badge-fail">✗ Fallito</span>'}</td>
+      <td style="color:var(--muted);font-size:0.75rem">${ua}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── VISITE PAGINA LOGIN ───────────────────────────────────────────────────────
+function renderVisitsCard() {
+  const container = document.getElementById('container');
+  container.insertAdjacentHTML('beforeend', `
+  <div class="section-card" id="sec-visits">
+    <div class="section-head">
+      <span>👁️ Visite pagina login</span>
+      <label style="font-size:0.75rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="nascondi-bot" checked onchange="loadPageVisits()"> Nascondi bot/ping
+      </label>
+    </div>
+    <div class="log-scroll">
+      <table class="log-table">
+        <thead><tr>
+          <th>Data / Ora</th>
+          <th>IP</th>
+          <th>Referrer</th>
+          <th>Browser</th>
+          <th style="text-align:center">Bot</th>
+        </tr></thead>
+        <tbody id="visitsTableBody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Caricamento...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>`);
+}
+
+async function loadPageVisits() {
+  const tbody = document.getElementById('visitsTableBody');
+  if (!tbody) return;
+
+  let data;
+  try {
+    data = await fetch('/api/admin/page-visits').then(r => r.json());
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FCA5A5;padding:24px">Errore nel caricamento</td></tr>';
+    return;
+  }
+
+  const nascondiBot = document.getElementById('nascondi-bot')?.checked;
+  const filtered = nascondiBot ? data.filter(v => !v.is_bot) : data;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Nessuna visita registrata</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(v => {
+    const ts = (v.timestamp || '').toString().replace('T',' ').slice(0,19);
+    const ua = parseUA(v.user_agent || '');
+    const referrer = v.referrer
+      ? `<span style="font-size:0.78rem;color:var(--muted)">${v.referrer.slice(0,40)}</span>`
+      : '<span style="color:var(--border)">diretto</span>';
+    const bot = v.is_bot
+      ? '<span style="color:#F59E0B;font-size:0.8rem">🤖 sì</span>'
+      : '<span style="color:var(--border)">—</span>';
+    return `<tr>
+      <td style="color:var(--muted);font-size:0.8rem;white-space:nowrap">${ts}</td>
+      <td style="font-family:monospace;font-size:0.78rem;color:var(--muted)">${v.ip_address || '—'}</td>
+      <td>${referrer}</td>
+      <td style="color:var(--muted);font-size:0.75rem">${ua}</td>
+      <td style="text-align:center">${bot}</td>
+    </tr>`;
+  }).join('');
+}
+ // ──────────────────────────────────────────────────────────────────── 
+
+function parseUA(ua) {
+  if (!ua) return '—';
+  // Estrai browser e OS leggibili
+  let browser = '—', os = '—';
+  if (/Chrome\/(\d+)/.test(ua) && !/Edg/.test(ua) && !/OPR/.test(ua)) browser = `Chrome ${RegExp.$1}`;
+  else if (/Edg\/(\d+)/.test(ua)) browser = `Edge ${RegExp.$1}`;
+  else if (/OPR\/(\d+)/.test(ua)) browser = `Opera ${RegExp.$1}`;
+  else if (/Firefox\/(\d+)/.test(ua)) browser = `Firefox ${RegExp.$1}`;
+  else if (/Safari\//.test(ua) && /Version\/(\d+)/.test(ua)) browser = `Safari ${RegExp.$1}`;
+  else browser = ua.slice(0, 30);
+
+  if (/Windows NT/.test(ua)) os = 'Windows';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/iPhone|iPad/.test(ua)) os = 'iOS';
+  else if (/Android/.test(ua)) os = 'Android';
+  else if (/Linux/.test(ua)) os = 'Linux';
+
+  return `${browser} · ${os}`;
 }
 
 // ── UTENTI ──────────────────────────────────────────────────────────────────
@@ -447,36 +682,36 @@ function renderUtenti(utenti) {
   <div class="section-card" id="sec-utenti">
     <div class="section-head"><span>👥 Utenti registrati</span></div>
     <table>
-      <thead><tr><th>Utente</th><th>Ruolo</th><th>Azioni</th></tr></thead>
+      <thead><tr><th>Username</th><th>Nome</th><th>Ruolo</th><th>Registrato</th><th>Azioni</th></tr></thead>
       <tbody>
         ${utenti.map(u=>`<tr>
-          <td><strong>${u.username}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${u.nome||'—'}</span></td>
-          <td>${u.is_admin ? '<span class="badge-admin">Admin</span>' : (u.is_editor ? '<span style="background:rgba(16,185,129,.15);color:#6EE7B7;border:1px solid rgba(16,185,129,.3);padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700">Editor</span>' : '<span class="badge-user">Utente</span>')}</td>
+          <td><strong>${u.username}</strong></td>
+          <td>${u.nome||'—'}</td>
+          <td>${u.is_admin ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Utente</span>'}</td>
+          <td style="color:var(--muted);font-size:0.8rem">${u.created_at?.slice(0,10)||'—'}</td>
           <td style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-sm btn-warn" onclick="toggleAdmin(${u.id},'${u.username}',${u.is_admin})">${u.is_admin?'Rimuovi admin':'Rendi admin'}</button>
-            <button class="btn btn-sm" style="background:rgba(99,102,241,.15);color:#A5B4FC;border:1px solid rgba(99,102,241,.3)" onclick="resetPassword(${u.id},'${u.username}')">🔑 Reset</button>
-            <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#6EE7B7;border:1px solid rgba(16,185,129,.3)" onclick="toggleEditor(${u.id},'${u.username}',${u.is_editor||false})">${u.is_editor?'✏️ Editor':'➕ Editor'}</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">🗑</button>
+            <button class="btn btn-sm" style="background:rgba(99,102,241,.15);color:#A5B4FC;border:1px solid rgba(99,102,241,.3)" onclick="resetPassword(${u.id},'${u.username}')">🔑 Reset pwd</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">Elimina</button>
           </td>
         </tr>`).join('')}
       </tbody>
     </table>
   </div>`;
+  const container = document.getElementById('container');
   if (existing) existing.outerHTML = html;
-  else document.getElementById('container').insertAdjacentHTML('afterbegin', html);
+  else {
+    // Inserisci dopo status ma prima dei log
+    const secLogs = document.getElementById('sec-logs');
+    if (secLogs) secLogs.insertAdjacentHTML('beforebegin', html);
+    else container.insertAdjacentHTML('beforeend', html);
+  }
 }
 
 async function toggleAdmin(id, username, isAdm) {
   if (!confirm(`${isAdm?'Rimuovere':'Rendere'} admin "${username}"?`)) return;
   await fetch(`/api/admin/utenti/${id}/admin`, {method:'POST'});
   await loadAll();
-}
-
-async function toggleEditor(id, username, isEditor) {
-  if (isEditor) { alert(`"${username}" è già editor. Per rimuovere il ruolo contatta l'amministratore di sistema.`); return; }
-  if (!confirm(`Assegnare "${username}" come editor del team turni?`)) return;
-  const res = await fetch(`/api/admin/utenti/${id}/editor`, {method:'POST'}).then(r=>r.json());
-  if (res.ok) { loadAll(); } else alert('Errore: ' + (res.detail||'sconosciuto'));
 }
 
 async function resetPassword(id, username) {
@@ -507,9 +742,9 @@ function renderTabelle(tabs) {
     <td><strong>${t.nome}</strong></td>
     <td>${t.tipo==='telefonisti'?'📞 Telefonisti':'👔 Capisala'}</td>
     <td>${t.num_settimane} sett.</td>
-    <td style="display:flex;gap:6px;flex-wrap:wrap">
+    <td style="display:flex;gap:6px">
       <button class="btn btn-sm btn-primary" onclick="editTabella(${t.id})">Modifica</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteTabella(${t.id},'${t.nome}')">🗑 Elimina</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTabella(${t.id},'${t.nome}')">Elimina</button>
     </td>
   </tr>`).join('');
 
@@ -526,11 +761,12 @@ function renderTabelle(tabs) {
     </div>
   </div>`;
 
+  const container = document.getElementById('container');
   if (existing) existing.outerHTML = html;
   else {
-    const secHealth = document.getElementById('sec-health');
-    if (secHealth) secHealth.insertAdjacentHTML('beforebegin', html);
-    else document.getElementById('container').insertAdjacentHTML('afterbegin', html);
+    const secLogs = document.getElementById('sec-logs');
+    if (secLogs) secLogs.insertAdjacentHTML('beforebegin', html);
+    else container.insertAdjacentHTML('beforeend', html);
   }
 }
 
@@ -584,24 +820,19 @@ let pickerTarget = null;
 function openPicker(sett, giorno, evt) {
   closePicker();
   pickerTarget = {sett, giorno};
-
   const picker = document.createElement('div');
   picker.className = 'turno-picker';
   picker.id = 'turnoPicker';
-
   picker.innerHTML = TURNI_LIST.map(t =>
     `<button class="tp-btn" style="background:${TURNI_COLORS[t]||'#374151'}" onclick="selectTurno('${t}')">${t}</button>`
   ).join('') + `<button class="tp-btn tp-clear" onclick="selectTurno('')">✕ Vuoto</button>`;
-
   document.body.appendChild(picker);
-
   const rect = evt.currentTarget.getBoundingClientRect();
   let top = rect.bottom + 6, left = rect.left;
   if (left + 260 > window.innerWidth) left = window.innerWidth - 270;
   if (top + 200 > window.innerHeight) top = rect.top - 210;
   picker.style.top = top + 'px';
   picker.style.left = left + 'px';
-
   setTimeout(() => document.addEventListener('click', closePicker, {once:true}), 50);
   evt.stopPropagation();
 }
@@ -639,12 +870,10 @@ function showEditor(tab) {
   editor.classList.add('open');
   const numSett = tab.num_settimane || 13;
   const turni = tab.turni_json || tab.turni || [];
-
   editorData = [];
   for (let s = 0; s < numSett; s++) {
     editorData[s] = Array(7).fill('').map((_, d) => (turni[s]?.[d] || '').trim().split(' ')[0] || '');
   }
-
   editor.innerHTML = `
     <hr style="border-color:var(--border);margin:20px 0">
     <h3 style="margin-bottom:16px;font-size:1rem">${editingTab ? 'Modifica tabella' : 'Nuova tabella'}</h3>
@@ -710,124 +939,8 @@ async function deleteTabella(id, nome) {
   await loadAll();
 }
 
-// ── HEALTH ────────────────────────────────────────────────────────────────────
-async function loadHealth() {
-  const dotS = document.getElementById('dotServer');
-  const dotD = document.getElementById('dotDb');
-  if (dotS) { dotS.className = 'health-dot grey pulse'; }
-  if (dotD) { dotD.className = 'health-dot grey pulse'; }
-  try {
-    const h = await fetch('/api/health').then(r => r.json());
-    const lblS = document.getElementById('lblServer');
-    const lblD = document.getElementById('lblDb');
-    const lblL = document.getElementById('lblLatency');
-    const lblT = document.getElementById('lblHealthTime');
-
-    if (dotS) dotS.className = 'health-dot green';
-    if (lblS) lblS.textContent = 'Server online';
-
-    if (h.db_ok) {
-      if (dotD) dotD.className = 'health-dot green';
-      if (lblD) lblD.textContent = 'Database connesso';
-      if (lblL) {
-        const ms = h.db_latency_ms;
-        lblL.textContent = ms + ' ms';
-        lblL.className = 'latency-badge ' + (ms < 100 ? 'fast' : 'slow');
-      }
-    } else {
-      if (dotD) dotD.className = 'health-dot red';
-      if (lblD) lblD.textContent = 'Database non raggiungibile';
-      if (lblL) { lblL.textContent = '— ms'; lblL.className = 'latency-badge'; }
-    }
-    if (lblT) lblT.textContent = 'Aggiornato: ' + new Date().toLocaleTimeString('it-IT');
-  } catch(e) {
-    if (dotS) dotS.className = 'health-dot red';
-    const lblS = document.getElementById('lblServer');
-    if (lblS) lblS.textContent = 'Server non raggiungibile';
-  }
-}
-
-// ── STATS ─────────────────────────────────────────────────────────────────────
-async function loadStats() {
-  try {
-    const s = await fetch('/api/admin/stats').then(r => r.json());
-    document.getElementById('sUtenti').textContent       = s.utenti ?? '—';
-    document.getElementById('sTurni').textContent        = s.turni ?? '—';
-    document.getElementById('sTabelle').textContent      = s.tabelle ?? '—';
-    document.getElementById('sTeam').textContent         = s.team_operatori ?? '—';
-    document.getElementById('sLoginOggi').textContent    = s.log_accessi_oggi ?? '—';
-    document.getElementById('sLoginFalliti').textContent = s.login_falliti_oggi ?? '—';
-  } catch(e) { console.warn('Stats error', e); }
-}
-
-// ── LOG ACCESSI ───────────────────────────────────────────────────────────────
-let _logAccessi = [];
-
-async function loadLogAccessi() {
-  const body = document.getElementById('logAccessiBody');
-  if (body) body.innerHTML = '<div class="loading">Caricamento...</div>';
-  try {
-    _logAccessi = await fetch('/api/admin/log-accessi?limit=200').then(r => r.json());
-    renderLogAccessi();
-  } catch(e) {
-    if (body) body.innerHTML = '<div class="loading">Errore caricamento log</div>';
-  }
-}
-
-function renderLogAccessi() {
-  const body = document.getElementById('logAccessiBody');
-  if (!body) return;
-  const filtro = document.getElementById('logFilter')?.value || 'tutti';
-  const rows = _logAccessi.filter(l => filtro === 'tutti' || l.esito === filtro);
-  if (!rows.length) {
-    body.innerHTML = '<div class="loading">Nessun log trovato</div>';
-    return;
-  }
-  body.innerHTML = `
-    <table>
-      <thead><tr>
-        <th>Timestamp</th><th>Utente</th><th>Esito</th><th>IP</th><th>User Agent</th>
-      </tr></thead>
-      <tbody>${rows.map(l => `<tr>
-        <td class="mono">${(l.timestamp||'').replace('T',' ').slice(0,19)}</td>
-        <td><strong>${l.username||'—'}</strong></td>
-        <td><span class="${l.esito==='ok'?'log-badge-ok':'log-badge-fallito'}">${l.esito==='ok'?'✅ OK':'❌ Fallito'}</span></td>
-        <td class="mono">${l.ip||'—'}</td>
-        <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.user_agent||''}">${(l.user_agent||'—').slice(0,40)}${(l.user_agent||'').length>40?'…':''}</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-}
-
-// ── LOG TEAM ──────────────────────────────────────────────────────────────────
-async function loadLogTeam() {
-  const body = document.getElementById('logTeamBody');
-  if (body) body.innerHTML = '<div class="loading">Caricamento...</div>';
-  try {
-    const logs = await fetch('/api/team/log?limit=100').then(r => r.json());
-    if (!logs.length) {
-      if (body) body.innerHTML = '<div class="loading">Nessuna modifica registrata</div>';
-      return;
-    }
-    if (body) body.innerHTML = `
-      <table>
-        <thead><tr><th>Timestamp</th><th>Operatore</th><th>Data turno</th><th>Turno</th><th>Modificato da</th></tr></thead>
-        <tbody>${logs.map(l => `<tr>
-          <td class="mono">${(l.data_modifica||l.modificato_il||'').slice(0,16).replace('T',' ')}</td>
-          <td>${l.operatore_nome || l.operatore_id || '—'}</td>
-          <td class="mono">${l.data_turno||l.data||'—'}</td>
-          <td><strong>${l.nuovo_valore||l.turno_base||l.turno||'—'}</strong></td>
-          <td>${l.utente||l.modificato_da||'—'}</td>
-        </tr>`).join('')}</tbody>
-      </table>`;
-  } catch(e) {
-    if (body) body.innerHTML = '<div class="loading">Endpoint log team non disponibile</div>';
-  }
-}
-
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-(async function() {
-  await init();
-})();
+// ── BOTTOM NAV: mostra Admin solo per admin ────────────────────────────────
+// (il link Admin è sempre visibile nella bottom-nav di questa pagina)
 
 // ── USER MENU ────────────────────────────────────────────────────────────────
 function toggleUserMenu(e) {
@@ -872,5 +985,14 @@ async function doChangePwd() {
   }
 }
 </script>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a href="/"><span class="icon">🗓</span><span>Turni</span></a>
+  <a href="/riepilogo.html"><span class="icon">📊</span><span>Riepilogo</span></a>
+  <a href="/bustapaga.html"><span class="icon">💶</span><span>Busta</span></a>
+  <a href="/turni-team.html"><span class="icon">👥</span><span>Team</span></a>
+  <a href="/impostazioni.html"><span class="icon">👤</span><span>Account</span></a>
+  <a href="/admin.html" class="active admin-link"><span class="icon">🔧</span><span>Admin</span></a>
+</div></nav>
 </body>
 </html>

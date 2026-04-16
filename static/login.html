@@ -43,27 +43,15 @@
          margin-bottom:14px; display:none; }
   .err.show { display:block; }
 
-  @media (max-width: 768px) {
-    header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
-    header h1 { font-size: 1rem; }
-    nav { display: none; }
-    .header-right { gap: 6px; }
-    .user-label { display: none; }
-    .btn-logout { padding: 5px 10px; font-size: 0.78rem; }
-    .nav-controls { gap: 6px; }
-    .nav-controls select, .nav-controls button { padding: 5px 10px; font-size: 0.8rem; }
-    .container { padding: 12px; }
-    .fields-grid { grid-template-columns: 1fr !important; }
-    table { font-size: 0.75rem; }
-    th, td { padding: 6px 5px; }
-    .busta-info { grid-template-columns: 1fr 1fr !important; }
-    .ore-grid { grid-template-columns: repeat(3, 1fr) !important; }
-    .fiscal-grid { grid-template-columns: 1fr 1fr !important; }
-    .netto-card { flex-direction: column; gap: 8px; text-align: center; }
-    .netto-val { font-size: 1.8rem; }
-    .riepilogo-table { font-size: 0.7rem; }
-    .card { padding: 24px 18px; }
+  @media (max-width: 480px) {
+    body { align-items: flex-start; padding-top: 32px; }
+    .card { padding: 28px 20px; border-radius: 12px; width: 100%; max-width: 100%; margin: 0 12px; }
+    .logo h1 { font-size: 1.4rem; }
+    .btn-main { padding: 13px; font-size: 0.97rem; }
+    input { font-size: 1rem; padding: 12px 14px; }
   }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -91,7 +79,7 @@
       <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter') doLogin()">
     </div>
-    <button class="btn-main" onclick="doLogin()">Entra →</button>
+    <button class="btn-main" id="btnLogin" onclick="doLogin()">Entra →</button>
   </div>
 
   <!-- REGISTER -->
@@ -108,7 +96,7 @@
       <input type="password" id="regPass" placeholder="min 6 caratteri"
              onkeydown="if(event.key==='Enter') doRegister()">
     </div>
-    <button class="btn-main" onclick="doRegister()">Crea account →</button>
+    <button class="btn-main" id="btnRegister" onclick="doRegister()">Crea account →</button>
   </div>
 </div>
 
@@ -121,6 +109,13 @@ function showTab(t) {
   showErr('');
 }
 
+
+(async () => {
+    try {
+      await fetch('/api/log-page-visit', { method: 'POST' });
+    } catch (e) {}
+  })();
+
 function showErr(msg) {
   const el = document.getElementById('errMsg');
   el.textContent = msg;
@@ -131,45 +126,75 @@ async function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   if (!u || !p) { showErr('Inserisci username e password'); return; }
+
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px"></span>Accesso in corso...';
+
   try {
     const body = new URLSearchParams({ username: u, password: p });
     const res = await fetch('/api/auth/login', { method:'POST', body });
     const data = await res.json();
-    if (!res.ok) { showErr(data.detail || 'Credenziali non corrette'); return; }
+    if (!res.ok) {
+      showErr(data.detail || 'Credenziali non corrette');
+      btn.disabled = false;
+      btn.innerHTML = 'Entra →';
+      return;
+    }
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('username', data.username);
     localStorage.setItem('nome', data.nome || data.username);
+    btn.innerHTML = '✓ Accesso effettuato';
+    btn.style.background = '#10B981';
     window.location.href = '/';
-  } catch(e) { showErr('Errore di connessione'); }
+  } catch(e) {
+    showErr('Errore di connessione');
+    btn.disabled = false;
+    btn.innerHTML = 'Entra →';
+  }
 }
 
 async function doRegister() {
   const u = document.getElementById('regUser').value.trim().toLowerCase();
   const p = document.getElementById('regPass').value;
   if (!u || !p) { showErr('Compila username e password'); return; }
-  // Valida formato nome.cognome
   if (!/^[a-z]+\.[a-z]+$/.test(u)) {
     showErr('Username non valido. Usa il formato nome.cognome (es. mario.rossi)');
     return;
   }
-  // Deriva il nome visualizzato dal username (mario.rossi → Mario Rossi)
   const nome = u.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+
+  const btn = document.getElementById('btnRegister');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px"></span>Registrazione...';
+
   try {
     const res = await fetch('/api/auth/register', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ username:u, password:p, nome })
     });
     const data = await res.json();
-    if (!res.ok) { showErr(data.detail || 'Errore registrazione'); return; }
+    if (!res.ok) {
+      showErr(data.detail || 'Errore registrazione');
+      btn.disabled = false;
+      btn.innerHTML = 'Crea account →';
+      return;
+    }
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('username', data.username);
     localStorage.setItem('nome', nome);
+    btn.innerHTML = '✓ Account creato!';
+    btn.style.background = '#10B981';
     window.location.href = '/';
-  } catch(e) { showErr('Errore di connessione'); }
+  } catch(e) {
+    showErr('Errore di connessione');
+    btn.disabled = false;
+    btn.innerHTML = 'Crea account →';
+  }
 }
 
 // Se già loggato vai direttamente alla home
-if (localStorage.getItem('token')) window.location.href = '/';
+if (localStorage.getItem('token')) window.location.href = '/index.html';
 </script>
 </body>
 </html>
