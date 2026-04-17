@@ -1331,6 +1331,121 @@ async function doChangePwd() {
     msg.textContent = '❌ ' + (res.detail || 'Password attuale non corretta'); msg.style.color='#EF4444';
   }
 }
+
+function renderCalendarRowHtml(dataStr) {
+  const d = new Date(dataStr + 'T12:00:00');
+  const dow = d.getDay();
+  const isFest = festivita.has(dataStr) || dow === 0;
+  const isSab = dow === 6;
+  const isOggi = dataStr === new Date().toISOString().slice(0,10);
+  const row = turniMese[dataStr] || {};
+  const t = row.turno || '';
+  const cfg = config[t] || {};
+
+  const oreDiurne = row.ore_diurne || 0;
+  const oreNott = row.ore_notturne || 0;
+  const oreTot = oreDiurne + oreNott;
+  const straoD = (row.strao_diurno||0) + (row.strao_fest_diurno||0);
+  const straoN = (row.strao_notturno||0) + (row.strao_fest_notturno||0);
+  const isFestStrao = (row.strao_fest_diurno||0) + (row.strao_fest_notturno||0) > 0;
+  const rep = row.reperibilita || '';
+
+  const cls = [
+    'day-row',
+    isFest ? 'is-festivo' : '',
+    isSab ? 'is-sabato' : '',
+    isOggi ? 'today' : ''
+  ].filter(Boolean).join(' ');
+
+  const badgeHtml = t
+    ? `<span class="badge" style="background:${cfg.colore || '#555'}">${t}</span>`
+    : `<span style="color:var(--border)">â€”</span>`;
+
+  const stdIni = cfg.std_ini != null ? minToHHMM(cfg.std_ini) : null;
+  const stdFin = cfg.std_fin != null ? minToHHMM(cfg.std_fin) : null;
+  const showIni = row.ora_inizio || stdIni || 'â€”';
+  const showFin = row.ora_fine || stdFin || 'â€”';
+  const iniStyle = row.ora_inizio && row.ora_inizio !== stdIni ? 'color:#F59E0B;font-weight:700' : 'color:var(--muted)';
+  const finStyle = row.ora_fine && row.ora_fine !== stdFin ? 'color:#EF4444;font-weight:700' : 'color:var(--muted)';
+  const repIcon = rep ? { feriale:'ðŸ”µ', semifestiva:'ðŸŸ¡', festiva:'ðŸ”´' }[rep] || 'â—' : '';
+  const straoColor = isFestStrao ? '#EC4899' : '#F59E0B';
+
+  return `<tr class="${cls}" data-data="${dataStr}" onclick="openModal('${dataStr}')">
+      <td class="cell-data">${d.getDate()} ${MESI_IT[mese-1].slice(0,3)}</td>
+      <td class="cell-giorno">${GIORNI_IT[dow]}</td>
+      <td class="cell-turno">${badgeHtml}</td>
+      <td class="cell-ore" style="font-size:0.8rem;${iniStyle}">${showIni}</td>
+      <td class="cell-ore" style="font-size:0.8rem;${finStyle}">${showFin}</td>
+      <td class="cell-ore">${oreTot ? fmtH(oreTot) : 'â€”'}</td>
+      <td class="cell-ore">${oreDiurne ? fmtH(oreDiurne) : 'â€”'}</td>
+      <td class="cell-ore">${oreNott ? fmtH(oreNott) : 'â€”'}</td>
+      <td class="cell-ore">${straoD ? '<span style="color:'+straoColor+'">+'+fmtH(straoD)+'</span>' : 'â€”'}</td>
+      <td class="cell-ore">${straoN ? '<span style="color:'+straoColor+'">+'+fmtH(straoN)+'</span>' : 'â€”'}</td>
+      <td class="cell-ore">${repIcon || 'â€”'}</td>
+      <td class="cell-note">${row.note || ''}</td>
+    </tr>`;
+}
+
+function refreshCalendarRow(dataStr) {
+  const rowEl = document.querySelector(`#calBody tr[data-data="${dataStr}"]`);
+  if (!rowEl) {
+    renderCalendario();
+    return;
+  }
+  const tmp = document.createElement('tbody');
+  tmp.innerHTML = renderCalendarRowHtml(dataStr);
+  if (tmp.firstElementChild) rowEl.replaceWith(tmp.firstElementChild);
+}
+
+async function saveTurno() {
+  if (!editingData) return;
+  const dataStr = editingData;
+  const hasRep = document.getElementById('reperibilita').value === 'true';
+  const payload = {
+    turno: selectedTurno || null,
+    ora_inizio: document.getElementById('oraInizio').value || null,
+    ora_fine: document.getElementById('oraFine').value || null,
+    reperibilita: hasRep,
+    note: document.getElementById('note').value || null,
+  };
+  const prevRow = turniMese[dataStr] ? { ...turniMese[dataStr] } : null;
+  const res = await fetch(`${API}/api/turni/${dataStr}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).catch(() => ({ok:false}));
+  if (!res.ok) return;
+
+  turniMese[dataStr] = {
+    ...(prevRow || {}),
+    data: dataStr,
+    turno: payload.turno,
+    ora_inizio: payload.ora_inizio,
+    ora_fine: payload.ora_fine,
+    reperibilita: res.tipo_reperibilita || '',
+    note: payload.note,
+    ore_diurne: res.ore_diurne || 0,
+    ore_notturne: res.ore_notturne || 0,
+    strao_diurno: res.strao_diurno || 0,
+    strao_notturno: res.strao_notturno || 0,
+    strao_fest_diurno: res.strao_fest_diurno || 0,
+    strao_fest_notturno: res.strao_fest_notturno || 0,
+  };
+  closeModal();
+  refreshCalendarRow(dataStr);
+  loadRiepilogo();
+}
+
+async function deleteTurno() {
+  if (!editingData) return;
+  const dataStr = editingData;
+  const res = await fetch(`${API}/api/turni/${dataStr}`, { method: 'DELETE' }).then(() => ({ok:true})).catch(() => ({ok:false}));
+  if (!res.ok) return;
+  delete turniMese[dataStr];
+  closeModal();
+  refreshCalendarRow(dataStr);
+  loadRiepilogo();
+}
 </script>
 <script>if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 // ── AUTH ─────────────────────────────────────────────────────────────────────

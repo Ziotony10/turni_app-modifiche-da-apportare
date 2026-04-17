@@ -57,76 +57,106 @@
     white-space:nowrap;
   }
   .team-table th.sticky-left { left:0; z-index:6; background:#e2e8f0; }
-  .team-table th.col-data { min-width:58px; text-align:left; padding-left:8px; background:#e2e8f0; }
-  .team-table th.col-giorno { min-width:32px; }
+  .team-table th.col-data { min-width:50px; text-align:left; padding-left:7px; background:#e2e8f0; }
+  .team-table th.col-giorno { min-width:32px; position:sticky; left:50px; z-index:6; background:#e2e8f0; }
   .team-table th.col-op { min-width:56px; border-left:1px solid #334155; }
   .team-table th.col-destra { min-width:32px; background:#dbeafe; color:#1e40af; border-left:1px solid #bfdbfe; font-weight:800; }
-  .th-op-nome { font-size:0.68rem; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px; color:#1e293b; font-weight:700; }
+  .th-op-nome { font-size:0.68rem; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px; width:100%; margin:0 auto; color:#1e293b; font-weight:700; }
 
   .team-table td { padding:3px 4px; border-bottom:1px solid #e2e8f0; border-right:none; text-align:center; vertical-align:middle; background:white; }
-  .team-table td.td-data { text-align:left; padding-left:8px; font-size:0.72rem; color:#475569; font-weight:700; background:#f8fafc; position:sticky; left:0; z-index:2; border-right:1px solid #e2e8f0; min-width:58px; }
-  .team-table td.td-giorno { font-size:0.7rem; color:#64748b; background:#f8fafc; min-width:32px; }
-  .team-table tr.domenica td { background:#fff5f5; }
-  .team-table tr.domenica td.td-data { color:#dc2626; background:#fee2e2; }
-  .team-table tr.sabato td.td-data { color:#d97706; background:#fffbeb; }
-  .team-table tr.sabato td { background:#fffef7; }
-  .team-table tr.festivo td { background:#fee2e2; }
-  .team-table tr.festivo td.td-data { color:#dc2626; font-weight:800; background:#fecaca; }
+  .team-table td.td-data { text-align:left; padding-left:6px; font-size:0.68rem; color:#475569; font-weight:700; background:#f8fafc; position:sticky; left:0; z-index:3; border-right:1px solid #e2e8f0; min-width:50px; }
+  .team-table td.td-giorno { font-size:0.7rem; color:#64748b; background:#f8fafc; min-width:32px; position:sticky; left:50px; z-index:3; border-right:1px solid #e2e8f0; }
+  .team-table tr.domenica td.td-data,
+  .team-table tr.domenica td.td-giorno { color:#9d174d; background:#FF99CC; }
+  .team-table tr.sabato td.td-data,
+  .team-table tr.sabato td.td-giorno { color:#3f6212; background:#C6E0B4; }
+  .team-table tr.festivo td.td-data,
+  .team-table tr.festivo td.td-giorno { color:#9d174d; font-weight:800; background:#FF99CC; }
   .team-table tr:hover td { filter:brightness(.97); }
+  .team-table tr.week-block td:first-child { border-left:1px solid rgba(100,116,139,0.52); }
+  .team-table tr.week-block td:last-child { border-right:1px solid rgba(100,116,139,0.52); }
+  .team-table tr.week-start td { border-top:2px solid rgba(100,116,139,0.6); }
+  .team-table tr.week-end td { border-bottom:2px solid rgba(100,116,139,0.6); }
 
   /* Celle turno */
   .cella {
     display:inline-flex; align-items:center; justify-content:center;
-    border-radius:5px; padding:3px 5px; font-size:0.82rem; font-weight:700;
-    color:#1a2535; min-width:70px; min-height:26px; position:relative;
+    border-radius:5px; padding:3px 4px; font-size:0.8rem; font-weight:700;
+    color:#1a2535; min-width:68px; min-height:25px; position:relative;
     cursor:default; line-height:1.1; background:transparent; border:1px solid transparent;
     gap:1px; flex-wrap:nowrap; white-space:nowrap;
   }
   .cella.editable { cursor:pointer; transition:background .1s, border-color .1s; }
   .cella.editable:hover { background:rgba(59,130,246,0.08); border-color:rgba(59,130,246,0.3); }
-  .cella.filled { border:1px solid rgba(100,116,139,0.35); }
-  .cella.rep { background:#FEF9C3; border:2px solid #EAB308; color:#713F12; font-weight:800; }
-  .cella.rep.filled { border:2px solid #EAB308; }
+  .cella.filled { border:1px solid rgba(100,116,139,0.18); }
+  .cella.rep { background:#fef9c3; }
+  .cella.rep.filled { border:1px solid rgba(100,116,139,0.18); }
   .cella.rep .cella-rep-icon { font-size:0.75rem; margin-left:1px; }
-  .cella.smart { background:#FED7AA; border:2px solid #FB923C; color:#9A3412; font-weight:800; }
-  .cella.smart.filled { border:2px solid #FB923C; }
+  .cella.smart { background:#fed7aa; }
+  .cella.smart.filled { border:1px solid rgba(100,116,139,0.18); }
   .cella.rep.smart,
   .cella.rep.smart.filled {
-    background:#FEF9C3;
-    border:2px solid #EAB308;
-    color:#713F12;
+    background:#fef9c3;
+    border:1px solid rgba(100,116,139,0.18);
   }
-  .cella.empty { background:transparent; border:1px dashed #334155; color:#475569; }
-  .cella.editable.empty:hover { background:#1e2d40; color:var(--muted); border-color:#475569; }
+  .cella.special-fest.filled,
+  .cella.var-cell.special-fest.filled,
+  .tpl-cella.special-fest.filled {
+    background:#FF0000;
+    color:#ffffff !important;
+    border:1px solid rgba(127,29,29,0.22);
+  }
+  .cella.special-fest.filled .mf-inline,
+  .cella.special-fest.filled .cella-rep-icon,
+  .cella.special-fest.filled .smart-inline,
+  .cella.var-cell.special-fest.filled .mf-inline,
+  .cella.var-cell.special-fest.filled .cella-rep-icon,
+  .cella.var-cell.special-fest.filled .smart-inline,
+  .tpl-cella.special-fest.filled .mf-inline,
+  .tpl-cella.special-fest.filled .cella-rep-icon,
+  .tpl-cella.special-fest.filled .smart-inline { color:#ffffff !important; }
+  .cella.special-mal.filled,
+  .cella.var-cell.special-mal.filled,
+  .tpl-cella.special-mal.filled {
+    background:#93c5fd;
+    color:#FF0000 !important;
+    border:1px solid rgba(59,130,246,0.28);
+  }
+  .cella.special-mal.filled .mf-inline,
+  .cella.special-mal.filled .cella-rep-icon,
+  .cella.special-mal.filled .smart-inline,
+  .cella.var-cell.special-mal.filled .mf-inline,
+  .cella.var-cell.special-mal.filled .cella-rep-icon,
+  .cella.var-cell.special-mal.filled .smart-inline,
+  .tpl-cella.special-mal.filled .mf-inline,
+  .tpl-cella.special-mal.filled .cella-rep-icon,
+  .tpl-cella.special-mal.filled .smart-inline { color:#FF0000 !important; }
+  .cella.var-cell.filled { color:#FF0000; font-size:0.9rem; font-weight:900; }
+  .cella.var-cell.filled .mf-inline { color:#FF0000; }
+  .cella.filled:not(.var-cell) { color:#1a2535; font-size:0.76rem; font-weight:700; }
+  .cella.empty { background:transparent; border:1px dashed #94a3b8; color:#64748b; }
+  .cella.editable.empty:hover { background:#1e2d40; color:var(--muted); border-color:#94a3b8; }
 
   /* BASE sbarrata quando c'è una VAR */
-  .cella-base-sbarrata {
-    display:flex; align-items:center; justify-content:center;
-    border-radius:5px; padding:3px 5px; font-size:0.82rem; font-weight:700;
-    min-width:70px; min-height:26px; width:100%; box-sizing:border-box; position:relative;
-    gap:1px; flex-wrap:nowrap; white-space:nowrap;
-    background:#fff1f2; border:1.5px solid rgba(239,68,68,.45); color:#b91c1c;
-    cursor:default; opacity:0.75;
-    overflow:hidden;
-  }
+  .cella-base-sbarrata { overflow:hidden; }
   .cella-base-sbarrata::after {
     content:'';
     position:absolute;
     left:-12%;
     top:50%;
     width:124%;
-    border-top:2px dashed #ef4444;
+    border-top:2px dashed #FF0000;
     transform:rotate(-19deg);
     transform-origin:center center;
     pointer-events:none;
     opacity:.95;
   }
   .cella-base-sbarrata.editable { cursor:pointer; }
-  .cella-base-sbarrata.editable:hover { opacity:1; background:#fecaca; }
+  .cella-base-sbarrata.editable:hover { background:rgba(59,130,246,0.08); border-color:rgba(59,130,246,0.3); }
 
   /* Modificatori inline (ordine: m/f → ® → #) */
   .mf-inline {
-    font-size:0.68rem; font-weight:900; color:#1a2535; margin-left:1px; line-height:1;
+    font-size:0.64rem; font-weight:500; color:#334155; margin-left:1px; line-height:1;
     position:relative; top:-0.38em;
   }
   .cella-rep-icon {
@@ -134,12 +164,12 @@
     position:relative; top:-0.38em;
   }
   /* Smart # inline — stessa dimensione del testo turno */
-  .smart-inline { font-size:0.9rem; font-weight:900; color:#ea580c; margin-left:1px; line-height:1; }
+  .smart-inline { font-size:0.9rem; font-weight:900; color:#FF0000; margin-left:1px; line-height:1; }
 
   /* Colonne destra */
-  .td-destra { font-size:0.72rem; color:#94A3B8; background:#151f30; border-left:1px solid var(--border); }
+  .td-destra { font-size:0.72rem; color:#334155; background:#f8fafc; border-left:1px solid #cbd5e1; font-weight:600; }
   .td-destra.editable { cursor:pointer; }
-  .td-destra.editable:hover { background:#1e2d45; color:var(--text); }
+  .td-destra.editable:hover { background:#e2e8f0; color:#1f2937; }
   .td-sep-destra { background:var(--bg); width:2px; padding:0; }
 
   /* ── TURNO PICKER REDESIGN ── */
@@ -271,8 +301,11 @@
     color:#e2e8f0; border-radius:8px; padding:6px 4px; font-size:0.8rem;
   }
   .template-rep-label { font-weight:700; color:#fcd34d; background:#0f172a !important; min-width:52px; }
+  .template-subtitle { margin-top:14px; font-size:0.8rem; font-weight:800; color:#cbd5e1; letter-spacing:.02em; }
   /* Cella template cliccabile */
   .tpl-cella { cursor:pointer; font-size:0.78rem; min-width:62px; }
+  .tpl-cella.filled:not(.rep):not(.smart) { color:#ffffff; }
+  .tpl-cella.filled:not(.rep):not(.smart) .mf-inline { color:#ffffff; }
   .tpl-cella:hover { background:rgba(59,130,246,0.12) !important; border-color:rgba(96,165,250,0.45) !important; }
   .tpl-date-input { background:#1f2a3f; border:1px solid #3b4a68; color:#e2e8f0; border-radius:6px; padding:4px 8px; }
   .tpl-date-input:focus { border-color:#60a5fa; outline:2px solid rgba(96,165,250,.25); }
@@ -455,7 +488,7 @@
       <button class="close-btn" onclick="document.getElementById('templateOverlay').classList.remove('open')">✕ Chiudi</button>
     </div>
     <div class="template-meta">
-      Inserisci i turni per ogni giorno della settimana e, se vuoi, anche le posizioni dei reperibili da ruotare automaticamente.<br>
+      Inserisci i turni per ogni giorno della settimana e, se vuoi, anche le posizioni dei reperibili e delle festivita da ruotare automaticamente.<br>
       Ogni settimana il sistema ruota i turni; puoi limitare l'applicazione del ciclo ad un intervallo specifico.
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
@@ -477,11 +510,21 @@
     <table class="template-rep-table">
       <thead>
         <tr>
-          <th>Rep</th><th>Lunedì</th><th>Martedì</th><th>Mercoledì</th>
+          <th>Col.</th><th>Lunedì</th><th>Martedì</th><th>Mercoledì</th>
           <th>Giovedì</th><th>Venerdì</th><th>Sabato</th><th>Domenica</th>
         </tr>
       </thead>
       <tbody id="templateRepTableBody"></tbody>
+    </table>
+    <div class="template-subtitle">Festivita</div>
+    <table class="template-rep-table">
+      <thead>
+        <tr>
+          <th>Col.</th><th>Lunedì</th><th>Martedì</th><th>Mercoledì</th>
+          <th>Giovedì</th><th>Venerdì</th><th>Sabato</th><th>Domenica</th>
+        </tr>
+      </thead>
+      <tbody id="templateFestTableBody"></tbody>
     </table>
     <div class="template-actions">
       <button class="btn primary" onclick="saveTemplate()">💾 Salva template</button>
@@ -530,7 +573,7 @@ let pickerTurnoSelected = undefined;
 let pickerMode = 'table';          // 'table' | 'template'
 let pickerTemplateTarget = null;   // { dow, pos }
 let tplData = {};                  // tplData[dow][pos] = { turno_base, flags }
-let tplRepData = {};               // tplRepData[dow] = { rep1_pos, rep2_pos, rep3_pos }
+let tplRepData = {};               // tplRepData[dow] = { rep1_pos, rep2_pos, rep3_pos, fest_m1_pos, fest_m2_pos, fest_p1_pos, fest_p2_pos }
 let tplSlotCount = 13;
 
 function getOperatorSlotCount(extraPositions = []) {
@@ -644,14 +687,7 @@ async function load() {
     return;
   }
 
-  const startDate = localStorage.getItem('team_template_start_date');
-  const endDate   = localStorage.getItem('team_template_end_date');
-  const params = new URLSearchParams();
-  if (startDate) params.set('start_date', startDate);
-  if (endDate)   params.set('end_date', endDate);
-  const query = params.toString() ? `?${params}` : '';
-
-  const response = await fetch(`/api/team/turni/${anno}/${mese}${query}`).catch(()=>({ok:false,status:0}));
+  const response = await fetch(`/api/team/turni/${anno}/${mese}`).catch(()=>({ok:false,status:0}));
   if (!response || response.ok===false && response.status===0) {
     wrap.innerHTML = `<div style="text-align:center;padding:60px;color:#fca5a5">Errore caricamento: impossibile contattare il server.</div>`;
     return;
@@ -691,24 +727,26 @@ async function load() {
   html += '<th colspan="4" class="col-destra" style="text-align:center;font-size:0.6rem">FESTIVITÀ<br><span style="font-size:0.55rem;opacity:.7">M&nbsp;M&nbsp;P&nbsp;P</span></th>';
   html += '</tr></thead><tbody>';
 
-  data.giorni.forEach(g => {
+  data.giorni.forEach((g, idx) => {
     const d = new Date(g.data + 'T12:00:00');
     const dayName = GIORNI_SHORT[g.dow];
     const dayNum  = d.getDate();
     const monthShort = MESI_IT[mese-1].slice(0,3);
 
-    let rowClass = '';
-    if (g.is_domenica) rowClass = 'domenica';
-    else if (g.is_sabato) rowClass = 'sabato';
+    let rowClass = 'week-block';
+    if (g.is_domenica) rowClass += ' domenica';
+    else if (g.is_sabato) rowClass += ' sabato';
     if (g.is_festivo) rowClass += ' festivo';
+    if (g.dow === 0 || idx === 0) rowClass += ' week-start';
+    if (g.dow === 6 || idx === data.giorni.length - 1) rowClass += ' week-end';
 
     html += `<tr class="${rowClass}" data-data="${g.data}">`;
     html += `<td class="td-data">${dayNum} ${monthShort}</td>`;
     html += `<td class="td-giorno">${dayName}</td>`;
 
     g.turni.forEach(t => {
-      html += `<td style="padding:3px 2px">${renderCella(t.turno_base, t.flags_base, g.data, t.operatore_id, 'base', t.turno_var)}</td>`;
-      html += `<td style="padding:3px 2px;border-right:2px solid var(--border)">${renderCella(t.turno_var, t.flags_var, g.data, t.operatore_id, 'var')}</td>`;
+      html += `<td style="padding:2px 1px">${renderCella(t.turno_base, t.flags_base, g.data, t.operatore_id, 'base', t.turno_var)}</td>`;
+      html += `<td style="padding:2px 1px;border-right:2px solid rgba(51,65,85,0.78)">${renderCella(t.turno_var, t.flags_var, g.data, t.operatore_id, 'var')}</td>`;
     });
 
     const cd = g.colonne_destra;
@@ -725,17 +763,70 @@ async function load() {
 
   html += '</tbody></table>';
   wrap.innerHTML = html;
+  applySpecialTurnoStyles(wrap);
+}
+
+function buildTeamRowHtml(g, idx, totalRows = (datiMese?.giorni?.length || 0)) {
+  const d = new Date(g.data + 'T12:00:00');
+  const dayName = GIORNI_SHORT[g.dow];
+  const dayNum  = d.getDate();
+  const monthShort = MESI_IT[mese-1].slice(0,3);
+
+  let rowClass = 'week-block';
+  if (g.is_domenica) rowClass += ' domenica';
+  else if (g.is_sabato) rowClass += ' sabato';
+  if (g.is_festivo) rowClass += ' festivo';
+  if (g.dow === 0 || idx === 0) rowClass += ' week-start';
+  if (g.dow === 6 || idx === totalRows - 1) rowClass += ' week-end';
+
+  let html = `<tr class="${rowClass}" data-data="${g.data}">`;
+  html += `<td class="td-data">${dayNum} ${monthShort}</td>`;
+  html += `<td class="td-giorno">${dayName}</td>`;
+
+  g.turni.forEach(t => {
+    html += `<td style="padding:2px 1px">${renderCella(t.turno_base, t.flags_base, g.data, t.operatore_id, 'base', t.turno_var)}</td>`;
+    html += `<td style="padding:2px 1px;border-right:2px solid rgba(51,65,85,0.78)">${renderCella(t.turno_var, t.flags_var, g.data, t.operatore_id, 'var')}</td>`;
+  });
+
+  const cd = g.colonne_destra;
+  html += '<td class="td-sep-destra"></td>';
+  ['rep1','rep2','rep3'].forEach(k => {
+    html += `<td class="td-destra${isEditor?' editable':''}" onclick="${isEditor?`editColonnaDestra('${g.data}','${k}',this)`:''}">${cd[k]||'â€”'}</td>`;
+  });
+  html += '<td class="td-sep-destra"></td>';
+  ['fest_m1','fest_m2','fest_p1','fest_p2'].forEach(k => {
+    html += `<td class="td-destra${isEditor?' editable':''}" onclick="${isEditor?`editColonnaDestra('${g.data}','${k}',this)`:''}">${cd[k]||'â€”'}</td>`;
+  });
+  html += '</tr>';
+  return html;
+}
+
+function refreshTeamRow(dataStr) {
+  const idx = datiMese?.giorni?.findIndex(g => g.data === dataStr);
+  if (idx == null || idx < 0) return;
+  const rowEl = document.querySelector(`tr[data-data="${dataStr}"]`);
+  if (!rowEl) return;
+  const tmp = document.createElement('tbody');
+  tmp.innerHTML = buildTeamRowHtml(datiMese.giorni[idx], idx, datiMese.giorni.length);
+  if (tmp.firstElementChild) {
+    rowEl.replaceWith(tmp.firstElementChild);
+    applySpecialTurnoStyles(document.getElementById('tableWrap'));
+  }
 }
 
 // ── RENDER CELLA ──────────────────────────────────────────────────────────────
 function renderCella(turno, flags, data, opId, col, turnoVar) {
   const isEmpty  = !turno;
   const edClass  = isEditor ? ' editable' : '';
+  const colClass = col === 'var' ? ' var-cell' : '';
   const clickEvt = isEditor ? `onclick="openPicker('${data}',${opId},'${col}',event)"` : '';
+  const turnoNorm = (turno || '').trim().toUpperCase();
   const isRep    = flags && flags.includes('rep');
   const isSmart  = flags && flags.includes('smart');
   const isF      = flags && flags.includes('F');
   const isM      = flags && flags.includes('M');
+  const isFestTurno = ['F', 'RF', 'EX FEST', 'EX F.', 'LUTTO'].includes(turnoNorm);
+  const isMalTurno = turnoNorm === 'MAL';
 
   // Ogni colonna mostra il proprio simbolo di reperibilità in base ai flag dedicati
   const showRep = isRep;
@@ -757,15 +848,70 @@ function renderCella(turno, flags, data, opId, col, turnoVar) {
   if (isEmpty) {
     const repClass = showRep ? ' rep' : '';
     const smartClass = isSmart ? ' smart' : '';
+    const specialClass = isFestTurno ? ' special-fest' : (isMalTurno ? ' special-mal' : '');
     const filledClass = hasExtras ? ' filled' : ' empty';
-    return `<div class="cella${edClass}${repClass}${smartClass}${filledClass}" ${clickEvt}>—${extras}</div>`;
+    return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${filledClass}" ${clickEvt}>—${extras}</div>`;
   }
 
   // Background giallo reperibilità solo se rep è attivo su questa colonna
   const repClass    = (showRep) ? ' rep' : '';
   const smartClass  = isSmart ? ' smart' : '';
   const filledClass = ' filled';
-  return `<div class="cella${edClass}${repClass}${smartClass}${filledClass}" ${clickEvt}>${turno}${extras}</div>`;
+  return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${filledClass}" ${clickEvt}>${turno}${extras}</div>`;
+}
+
+function renderCella(turno, flags, data, opId, col, turnoVar) {
+  const isEmpty  = !turno;
+  const edClass  = isEditor ? ' editable' : '';
+  const colClass = col === 'var' ? ' var-cell' : '';
+  const clickEvt = isEditor ? `onclick="openPicker('${data}',${opId},'${col}',event)"` : '';
+  const turnoNorm = (turno || '').trim().toUpperCase();
+  const isRep    = flags && flags.includes('rep');
+  const isSmart  = flags && flags.includes('smart');
+  const isF      = flags && flags.includes('F');
+  const isM      = flags && flags.includes('M');
+  const isFestTurno = ['F', 'RF', 'EX FEST', 'EX F.', 'LUTTO'].includes(turnoNorm);
+  const isMalTurno = turnoNorm === 'MAL';
+  const showRep = isRep;
+  const mfHtml   = (isM ? '<span class="mf-inline">m</span>' : '') +
+                   (isF ? '<span class="mf-inline">f</span>' : '');
+  const repIcon  = showRep ? '<span class="cella-rep-icon">Â®</span>' : '';
+  const smartHtml = isSmart ? '<span class="smart-inline">#</span>' : '';
+  const extras   = mfHtml + repIcon + smartHtml;
+  const specialClass = isFestTurno ? ' special-fest' : (isMalTurno ? ' special-mal' : '');
+
+  if (col === 'base' && turnoVar) {
+    const repClass = showRep ? ' rep' : '';
+    const smartClass = isSmart ? ' smart' : '';
+    const filledClass = isEmpty && !extras ? ' empty' : ' filled';
+    const value = isEmpty ? 'â€”' : turno;
+    return `<div class="cella cella-base-sbarrata${edClass}${repClass}${smartClass}${specialClass}${filledClass}" ${clickEvt}>${value}${extras}</div>`;
+  }
+
+  if (isEmpty) {
+    const repClass = showRep ? ' rep' : '';
+    const smartClass = isSmart ? ' smart' : '';
+    const filledClass = extras ? ' filled' : ' empty';
+    return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${specialClass}${filledClass}" ${clickEvt}>â€”${extras}</div>`;
+  }
+
+  const repClass = showRep ? ' rep' : '';
+  const smartClass = isSmart ? ' smart' : '';
+  return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${specialClass} filled" ${clickEvt}>${turno}${extras}</div>`;
+}
+
+function applySpecialTurnoStyles(root = document) {
+  const festTurns = new Set(['F', 'RF', 'EX FEST', 'EX F.', 'LUTTO']);
+  root.querySelectorAll('.cella.filled, .cella-base-sbarrata, .tpl-cella.filled').forEach(el => {
+    const raw = (el.textContent || '').trim().toUpperCase();
+    const turno = raw.split(/\s+/)[0] || '';
+    el.classList.remove('special-fest', 'special-mal');
+    if (raw.startsWith('EX FEST') || raw.startsWith('EX F.') || festTurns.has(turno)) {
+      el.classList.add('special-fest');
+      return;
+    }
+    if (turno === 'MAL') el.classList.add('special-mal');
+  });
 }
 
 // ── PICKER ────────────────────────────────────────────────────────────────────
@@ -855,7 +1001,7 @@ function pickerSetTurno(turno, btn) {
   const preview = document.getElementById('pickerPreview');
   if (preview) {
     preview.textContent = turno !== '' ? (turno || '—') : '(vuoto)';
-    preview.style.color = turno ? '#60a5fa' : '#64748b';
+    preview.style.color = turno ? '#ffffff' : '#64748b';
   }
   if (event) event.stopPropagation();
 }
@@ -904,12 +1050,19 @@ async function pickerConferma() {
     turno_base: col === 'base' ? turno : (turnoData?.turno_base ?? ''),
     turno_var:  col === 'var'  ? turno : (turnoData?.turno_var  ?? ''),
   };
+  const prevState = turnoData ? {
+    turno_base: turnoData.turno_base ?? '',
+    turno_var: turnoData.turno_var ?? '',
+    flags_base: turnoData.flags_base ?? '',
+    flags_var: turnoData.flags_var ?? '',
+  } : null;
 
   // Aggiornamento locale immediato (ottimistico)
   if (turnoData) {
     if (col === 'base') { turnoData.turno_base = turno; turnoData.flags_base = flags; }
     else                { turnoData.turno_var  = turno; turnoData.flags_var  = flags; }
   }
+  refreshTeamRow(data);
 
   closePicker();
 
@@ -922,16 +1075,23 @@ async function pickerConferma() {
   const ts = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   const lbl = document.getElementById('lastSaveLabel');
   if (!saveRes.ok) {
+    if (turnoData && prevState) {
+      turnoData.turno_base = prevState.turno_base;
+      turnoData.turno_var = prevState.turno_var;
+      turnoData.flags_base = prevState.flags_base;
+      turnoData.flags_var = prevState.flags_var;
+      refreshTeamRow(data);
+    }
     if (lbl) lbl.textContent = '⚠️ Errore salvataggio ' + ts;
     return;
   }
   if (lbl) lbl.textContent = '💾 Salvato ' + ts;
 
-  await load();
 }
 
 // ── COLONNE DESTRA ────────────────────────────────────────────────────────────
 async function editColonnaDestra(data, campo, td) {
+  const giorno = datiMese?.giorni?.find(g => g.data === data);
   const current = td.textContent.trim() === '—' ? '' : td.textContent.trim();
   const val = prompt(`Valore per ${campo} del ${data}:`, current);
   if (val === null) return;
@@ -1042,7 +1202,7 @@ function openPickerForTemplate(dow, pos, evt) {
   const preview = document.getElementById('pickerPreview');
   if (preview) {
     preview.textContent = curTurno || '—';
-    preview.style.color = curTurno ? '#a78bfa' : '#475569';
+    preview.style.color = curTurno ? '#ffffff' : '#475569';
   }
 
   document.querySelectorAll('.turno-picker .sb').forEach(b => b.classList.toggle('active', b.dataset.t === curTurno));
@@ -1067,19 +1227,20 @@ async function openTemplate() {
   const template = await fetch('/api/team/template-week').then(r=>r.json()).catch(()=>({posizioni:{}, reperibili:{}}));
   const posizioni = template.posizioni || {};
   const reperibili = template.reperibili || {};
-  const templatePositions = [];
-  Object.values(posizioni).forEach(dayRows => (dayRows || []).forEach(p => templatePositions.push(Number(p.posizione) || 0)));
-  Object.values(reperibili).forEach(rep => ['rep1_pos','rep2_pos','rep3_pos'].forEach(k => templatePositions.push(Number(rep?.[k]) || 0)));
-  const slotCount = getOperatorSlotCount(templatePositions);
+  const slotCount = getOperatorSlotCount();
   tplSlotCount = slotCount;
 
   // Carica i dati nel tplData
   for (let dow=0; dow<7; dow++) {
     tplData[dow] = {};
     tplRepData[dow] = {
-      rep1_pos: reperibili[dow]?.rep1_pos ?? '',
-      rep2_pos: reperibili[dow]?.rep2_pos ?? '',
-      rep3_pos: reperibili[dow]?.rep3_pos ?? '',
+      rep1_pos: Number(reperibili[dow]?.rep1_pos) <= slotCount ? (reperibili[dow]?.rep1_pos ?? '') : '',
+      rep2_pos: Number(reperibili[dow]?.rep2_pos) <= slotCount ? (reperibili[dow]?.rep2_pos ?? '') : '',
+      rep3_pos: Number(reperibili[dow]?.rep3_pos) <= slotCount ? (reperibili[dow]?.rep3_pos ?? '') : '',
+      fest_m1_pos: Number(reperibili[dow]?.fest_m1_pos) <= slotCount ? (reperibili[dow]?.fest_m1_pos ?? '') : '',
+      fest_m2_pos: Number(reperibili[dow]?.fest_m2_pos) <= slotCount ? (reperibili[dow]?.fest_m2_pos ?? '') : '',
+      fest_p1_pos: Number(reperibili[dow]?.fest_p1_pos) <= slotCount ? (reperibili[dow]?.fest_p1_pos ?? '') : '',
+      fest_p2_pos: Number(reperibili[dow]?.fest_p2_pos) <= slotCount ? (reperibili[dow]?.fest_p2_pos ?? '') : '',
     };
     for (let pos=1; pos<=slotCount; pos++) {
       const ex = posizioni[dow]?.find(p=>p.posizione===pos) || { turno_base:'', flags:'' };
@@ -1102,8 +1263,12 @@ async function openTemplate() {
 
   const repBody = document.getElementById('templateRepTableBody');
   repBody.innerHTML = '';
-  ['rep1_pos','rep2_pos','rep3_pos'].forEach((key, idx) => {
-    let row = `<tr><td class="template-rep-label">${idx + 1}° rep</td>`;
+  [
+    ['rep1_pos', '1° rep'],
+    ['rep2_pos', '2° rep'],
+    ['rep3_pos', '3° rep'],
+  ].forEach(([key, label]) => {
+    let row = `<tr><td class="template-rep-label">${label}</td>`;
     for (let dow=0; dow<7; dow++) {
       row += `<td><input type="number" min="1" max="${slotCount}" value="${tplRepData[dow]?.[key] ?? ''}" oninput="updateTemplateRep(${dow},'${key}',this.value,${slotCount})"></td>`;
     }
@@ -1111,16 +1276,34 @@ async function openTemplate() {
     repBody.innerHTML += row;
   });
 
-  const storedStart = localStorage.getItem('team_template_start_date');
-  const storedEnd   = localStorage.getItem('team_template_end_date');
-  if (storedStart) document.getElementById('tpl_start_date').value = storedStart;
-  if (storedEnd)   document.getElementById('tpl_end_date').value   = storedEnd;
+  const festBody = document.getElementById('templateFestTableBody');
+  festBody.innerHTML = '';
+  [
+    ['fest_m1_pos', 'Fest M1'],
+    ['fest_m2_pos', 'Fest M2'],
+    ['fest_p1_pos', 'Fest P1'],
+    ['fest_p2_pos', 'Fest P2'],
+  ].forEach(([key, label]) => {
+    let row = `<tr><td class="template-rep-label">${label}</td>`;
+    for (let dow=0; dow<7; dow++) {
+      row += `<td><input type="number" min="1" max="${slotCount}" value="${tplRepData[dow]?.[key] ?? ''}" oninput="updateTemplateRep(${dow},'${key}',this.value,${slotCount})"></td>`;
+    }
+    row += '</tr>';
+    festBody.innerHTML += row;
+  });
 
+  document.getElementById('tpl_start_date').value = template.start_date || '';
+  document.getElementById('tpl_end_date').value   = template.end_date || '';
+
+  applySpecialTurnoStyles(document.getElementById('templateOverlay'));
   document.getElementById('templateOverlay').classList.add('open');
 }
 
 function updateTemplateRep(dow, key, value, maxPos) {
-  if (!tplRepData[dow]) tplRepData[dow] = { rep1_pos:'', rep2_pos:'', rep3_pos:'' };
+  if (!tplRepData[dow]) tplRepData[dow] = {
+    rep1_pos:'', rep2_pos:'', rep3_pos:'',
+    fest_m1_pos:'', fest_m2_pos:'', fest_p1_pos:'', fest_p2_pos:'',
+  };
   const num = parseInt(value, 10);
   tplRepData[dow][key] = Number.isFinite(num) && num >= 1 && num <= maxPos ? num : '';
 }
@@ -1147,6 +1330,10 @@ async function saveTemplate() {
       rep1_pos: rep.rep1_pos || null,
       rep2_pos: rep.rep2_pos || null,
       rep3_pos: rep.rep3_pos || null,
+      fest_m1_pos: rep.fest_m1_pos || null,
+      fest_m2_pos: rep.fest_m2_pos || null,
+      fest_p1_pos: rep.fest_p1_pos || null,
+      fest_p2_pos: rep.fest_p2_pos || null,
     };
   }
 
@@ -1154,14 +1341,9 @@ async function saveTemplate() {
   const newEnd   = document.getElementById('tpl_end_date').value;
   if (newStart && newEnd && newStart > newEnd) { alert('La data inizio non può essere successiva alla data fine.'); return; }
 
-  if (newStart) localStorage.setItem('team_template_start_date', newStart);
-  else          localStorage.removeItem('team_template_start_date');
-  if (newEnd)   localStorage.setItem('team_template_end_date', newEnd);
-  else          localStorage.removeItem('team_template_end_date');
-
   const res = await fetch('/api/team/template-week', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ posizioni, reperibili })
+    body: JSON.stringify({ posizioni, reperibili, start_date: newStart || null, end_date: newEnd || null })
   }).then(r=>r.json());
 
   if (res.ok) {
@@ -1174,8 +1356,6 @@ async function saveTemplate() {
 }
 
 function clearTemplateDateRange() {
-  localStorage.removeItem('team_template_start_date');
-  localStorage.removeItem('team_template_end_date');
   document.getElementById('tpl_start_date').value = '';
   document.getElementById('tpl_end_date').value   = '';
   document.getElementById('templateResult').textContent = '🧹 Intervallo date resettato.';
@@ -1209,6 +1389,64 @@ async function loadLog() {
       <div style="font-size:0.68rem;color:var(--muted);margin-top:2px">da: ${l.utente||'?'}</div>
     </div>`;
   }).join('');
+}
+
+// Override pulito dei renderer: evita simboli corrotti e mantiene TAB invariata salvo la diagonale
+function renderCella(turno, flags, data, opId, col, turnoVar) {
+  const isEmpty = !turno;
+  const edClass = isEditor ? ' editable' : '';
+  const colClass = col === 'var' ? ' var-cell' : '';
+  const clickEvt = isEditor ? `onclick="openPicker('${data}',${opId},'${col}',event)"` : '';
+  const turnoNorm = (turno || '').trim().toUpperCase();
+  const isRep = flags && flags.includes('rep');
+  const isSmart = flags && flags.includes('smart');
+  const isF = flags && flags.includes('F');
+  const isM = flags && flags.includes('M');
+  const isFestTurno = ['F', 'RF', 'EX FEST', 'EX F.', 'LUTTO'].includes(turnoNorm);
+  const isMalTurno = turnoNorm === 'MAL';
+
+  const repClass = isRep ? ' rep' : '';
+  const smartClass = isSmart ? ' smart' : '';
+  const specialClass = isFestTurno ? ' special-fest' : (isMalTurno ? ' special-mal' : '');
+  const mfHtml = (isM ? '<span class="mf-inline">m</span>' : '') +
+                 (isF ? '<span class="mf-inline">f</span>' : '');
+  const repIcon = isRep ? '<span class="cella-rep-icon">&reg;</span>' : '';
+  const smartHtml = isSmart ? '<span class="smart-inline">#</span>' : '';
+  const extras = mfHtml + repIcon + smartHtml;
+  const value = isEmpty ? '' : turno;
+
+  if (col === 'base' && turnoVar) {
+    const filledClass = isEmpty && !extras ? ' empty' : ' filled';
+    return `<div class="cella cella-base-sbarrata${edClass}${repClass}${smartClass}${specialClass}${filledClass}" ${clickEvt}>${value}${extras}</div>`;
+  }
+
+  if (isEmpty) {
+    const filledClass = extras ? ' filled' : ' empty';
+  return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${specialClass}${filledClass}" ${clickEvt}>${value}${extras}</div>`;
+  }
+
+  return `<div class="cella${edClass}${colClass}${repClass}${smartClass}${specialClass} filled" ${clickEvt}>${turno}${extras}</div>`;
+}
+
+function renderTplCella(dow, pos) {
+  const d = (tplData[dow] && tplData[dow][pos]) || { turno_base: '', flags: '' };
+  const flags = d.flags || '';
+  const turno = d.turno_base || '';
+  const turnoNorm = turno.trim().toUpperCase();
+  const isRep = flags.includes('rep');
+  const isSmart = flags.includes('smart');
+  const isF = flags.includes('F');
+  const isM = flags.includes('M');
+  const isFestTurno = ['F', 'RF', 'EX FEST', 'EX F.', 'LUTTO'].includes(turnoNorm);
+  const isMalTurno = turnoNorm === 'MAL';
+  const repClass = isRep ? ' rep' : '';
+  const smartClass = isSmart ? ' smart' : '';
+  const specialClass = isFestTurno ? ' special-fest' : (isMalTurno ? ' special-mal' : '');
+  const stateClass = turno || isRep || isSmart || isF || isM ? ' filled' : ' empty';
+  const mfHtml = (isM ? '<span class="mf-inline">m</span>' : '') + (isF ? '<span class="mf-inline">f</span>' : '');
+  const repIcon = isRep ? '<span class="cella-rep-icon">&reg;</span>' : '';
+  const smartHtml = isSmart ? '<span class="smart-inline">#</span>' : '';
+  return `<div class="cella tpl-cella${repClass}${smartClass}${specialClass}${stateClass}" onclick="openPickerForTemplate(${dow},${pos},event)">${turno || ''}${mfHtml}${repIcon}${smartHtml}</div>`;
 }
 
 // Keep-alive

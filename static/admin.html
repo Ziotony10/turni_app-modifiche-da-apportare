@@ -21,6 +21,12 @@
 
   .badge-admin { background:rgba(59,130,246,.15); color:#60A5FA; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; }
   .badge-user  { background:var(--card2); color:var(--muted); padding:2px 8px; border-radius:4px; font-size:0.75rem; }
+  .badge-team-editor { background:rgba(16,185,129,.15); color:#34D399; border:1px solid rgba(16,185,129,.3); padding:2px 8px; border-radius:999px; font-size:0.75rem; font-weight:700; }
+  .role-group { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .user-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .btn-role { border:1px solid transparent; }
+  .btn-team-role { background:rgba(16,185,129,.15); color:#34D399; border-color:rgba(16,185,129,.3); }
+  .btn-team-role:hover { background:#10B981; color:#fff; }
 
   .btn { padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-size:0.82rem; font-weight:600; }
   .btn-sm { padding:4px 10px; font-size:0.78rem; }
@@ -682,12 +688,16 @@ function renderUtenti(utenti) {
   <div class="section-card" id="sec-utenti">
     <div class="section-head"><span>👥 Utenti registrati</span></div>
     <table>
-      <thead><tr><th>Username</th><th>Nome</th><th>Ruolo</th><th>Registrato</th><th>Azioni</th></tr></thead>
+      <thead><tr><th>Username</th><th>Nome</th><th>Ruoli</th><th>Registrato</th><th>Azioni</th></tr></thead>
       <tbody>
         ${utenti.map(u=>`<tr>
           <td><strong>${u.username}</strong></td>
           <td>${u.nome||'—'}</td>
-          <td>${u.is_admin ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Utente</span>'}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            ${u.is_admin ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Utente</span>'}
+            ${u.is_editor ? '<span class="badge-user" style="background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)">Editor</span>' : ''}
+            ${u.is_team_editor ? '<span class="badge-user" style="background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)">Editor Team</span>' : ''}
+          </td>
           <td style="color:var(--muted);font-size:0.8rem">${u.created_at?.slice(0,10)||'—'}</td>
           <td style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-sm btn-warn" onclick="toggleAdmin(${u.id},'${u.username}',${u.is_admin})">${u.is_admin?'Rimuovi admin':'Rendi admin'}</button>
@@ -733,6 +743,92 @@ async function deleteUser(id, username) {
   if (!confirm(`Ultima conferma: eliminare definitivamente "${username}"?`)) return;
   await fetch(`/api/admin/utenti/${id}`, {method:'DELETE'});
   await loadAll();
+}
+
+async function toggleEditor(id, username, isEd) {
+  if (!confirm(`${isEd?'Rimuovere':'Rendere'} editor "${username}"?`)) return;
+  await fetch(`/api/admin/utenti/${id}/editor`, {method:'POST'});
+  await loadAll();
+}
+
+async function toggleTeamEditor(id, username, isTeamEd) {
+  if (!confirm(`${isTeamEd?'Rimuovere':'Rendere'} editor team "${username}"?`)) return;
+  await fetch(`/api/admin/utenti/${id}/team-editor`, {method:'POST'});
+  await loadAll();
+}
+
+function renderUtenti(utenti) {
+  const existing = document.getElementById('sec-utenti');
+  const html = `
+  <div class="section-card" id="sec-utenti">
+    <div class="section-head"><span>Utenti registrati</span></div>
+    <table>
+      <thead><tr><th>Username</th><th>Nome</th><th>Ruoli</th><th>Registrato</th><th>Azioni</th></tr></thead>
+      <tbody>
+        ${utenti.map(u=>`<tr>
+          <td><strong>${u.username}</strong></td>
+          <td>${u.nome||'-'}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            ${u.is_admin ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Utente</span>'}
+            ${u.is_editor ? '<span class="badge-user" style="background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)">Editor</span>' : ''}
+            ${u.is_team_editor ? '<span class="badge-user" style="background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)">Editor Team</span>' : ''}
+          </td>
+          <td style="color:var(--muted);font-size:0.8rem">${u.created_at?.slice(0,10)||'-'}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-warn" onclick="toggleAdmin(${u.id},'${u.username}',${u.is_admin})">${u.is_admin?'Rimuovi admin':'Rendi admin'}</button>
+            <button class="btn btn-sm" style="background:rgba(99,102,241,.15);color:#A5B4FC;border:1px solid rgba(99,102,241,.3)" onclick="toggleEditor(${u.id},'${u.username}',${u.is_editor})">${u.is_editor?'Rimuovi editor':'Rendi editor'}</button>
+            <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#34D399;border:1px solid rgba(16,185,129,.3)" onclick="toggleTeamEditor(${u.id},'${u.username}',${u.is_team_editor})">${u.is_team_editor?'Rimuovi editor team':'Rendi editor team'}</button>
+            <button class="btn btn-sm" style="background:rgba(99,102,241,.15);color:#A5B4FC;border:1px solid rgba(99,102,241,.3)" onclick="resetPassword(${u.id},'${u.username}')">Reset pwd</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">Elimina</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+  const container = document.getElementById('container');
+  if (existing) existing.outerHTML = html;
+  else {
+    const secLogs = document.getElementById('sec-logs');
+    if (secLogs) secLogs.insertAdjacentHTML('beforebegin', html);
+    else container.insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function renderUtenti(utenti) {
+  const existing = document.getElementById('sec-utenti');
+  const html = `
+  <div class="section-card" id="sec-utenti">
+    <div class="section-head"><span>Utenti registrati</span></div>
+    <div class="section-body" style="padding:0">
+      <table>
+        <thead><tr><th>Username</th><th>Nome</th><th>Ruoli</th><th>Registrato</th><th>Azioni</th></tr></thead>
+        <tbody>
+          ${utenti.map(u=>`<tr>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.nome||'-'}</td>
+            <td><div class="role-group">
+              ${u.is_admin ? '<span class="badge-admin">Admin</span>' : '<span class="badge-user">Utente</span>'}
+              ${u.is_team_editor ? '<span class="badge-team-editor">Editor Team</span>' : ''}
+            </div></td>
+            <td style="color:var(--muted);font-size:0.8rem">${u.created_at?.slice(0,10)||'-'}</td>
+            <td><div class="user-actions">
+              <button class="btn btn-sm btn-warn btn-role" onclick="toggleAdmin(${u.id},'${u.username}',${u.is_admin})">${u.is_admin?'Rimuovi admin':'Rendi admin'}</button>
+              <button class="btn btn-sm btn-role btn-team-role" onclick="toggleTeamEditor(${u.id},'${u.username}',${u.is_team_editor})">${u.is_team_editor?'Rimuovi editor team':'Rendi editor team'}</button>
+              <button class="btn btn-sm btn-role" style="background:rgba(99,102,241,.15);color:#A5B4FC;border-color:rgba(99,102,241,.3)" onclick="resetPassword(${u.id},'${u.username}')">Reset pwd</button>
+              <button class="btn btn-sm btn-danger btn-role" onclick="deleteUser(${u.id},'${u.username}')">Elimina</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+  const container = document.getElementById('container');
+  if (existing) existing.outerHTML = html;
+  else {
+    const secLogs = document.getElementById('sec-logs');
+    if (secLogs) secLogs.insertAdjacentHTML('beforebegin', html);
+    else container.insertAdjacentHTML('beforeend', html);
+  }
 }
 
 // ── TABELLE TURNI ─────────────────────────────────────────────────────────────
