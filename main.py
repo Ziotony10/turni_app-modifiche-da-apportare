@@ -112,7 +112,7 @@ def fetchone(conn, sql, params=()):
     return dict(row) if row else None
 
 def get_user_record(conn, user_id: int):
-    return fetchone(conn, "SELECT id, username, nome, is_admin, is_editor FROM utenti WHERE id=?", (user_id,))
+    return fetchone(conn, "SELECT id, username, nome, is_admin, is_editor, is_team_editor FROM utenti WHERE id=?", (user_id,))
 
 def get_limit_placeholder():
     return "%s" if USE_PG else "?"
@@ -203,6 +203,7 @@ def init_db():
             password_hash TEXT NOT NULL,
             is_admin INTEGER DEFAULT 0,
             is_editor INTEGER DEFAULT 0,
+            is_team_editor INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP)""")
 
         ex(conn, """CREATE TABLE IF NOT EXISTS turni (
@@ -296,12 +297,21 @@ def init_db():
             giorno_settimana INTEGER PRIMARY KEY,
             rep1_pos INTEGER,
             rep2_pos INTEGER,
-            rep3_pos INTEGER)""")
+            rep3_pos INTEGER,
+            fest_m1_pos INTEGER,
+            fest_m2_pos INTEGER,
+            fest_p1_pos INTEGER,
+            fest_p2_pos INTEGER)""")
+
+        ex(conn, """CREATE TABLE IF NOT EXISTS team_template_config (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            start_date TEXT,
+            end_date TEXT)""")
 
         # ── Migrations / defaults (SQLite) ─────────────────────────────────────
         if not USE_PG:
             u_cols = [r[1] for r in conn.execute("PRAGMA table_info(utenti)").fetchall()]
-            for col in ["is_admin", "is_editor"]:
+            for col in ["is_admin", "is_editor", "is_team_editor"]:
                 if col not in u_cols:
                     conn.execute(f"ALTER TABLE utenti ADD COLUMN {col} INTEGER DEFAULT 0")
 
@@ -317,6 +327,11 @@ def init_db():
             for col in ["flags_base", "flags_var"]:
                 if col not in team_cols:
                     conn.execute(f"ALTER TABLE team_turni ADD COLUMN {col} TEXT DEFAULT ''")
+
+            tpl_rep_cols = [r[1] for r in conn.execute("PRAGMA table_info(team_template_reperibili_weekly)").fetchall()]
+            for col in ["fest_m1_pos", "fest_m2_pos", "fest_p1_pos", "fest_p2_pos"]:
+                if col not in tpl_rep_cols:
+                    conn.execute(f"ALTER TABLE team_template_reperibili_weekly ADD COLUMN {col} INTEGER")
 
             if "flags_base" in [r[1] for r in conn.execute("PRAGMA table_info(team_turni)").fetchall()] and "flags_var" in [r[1] for r in conn.execute("PRAGMA table_info(team_turni)").fetchall()]:
                 conn.execute("""
@@ -352,7 +367,7 @@ def init_db():
             if fetchone(conn, "SELECT COUNT(*) as cnt FROM utenti")["cnt"] == 0 and INITIAL_ADMIN_USERNAME and INITIAL_ADMIN_PASSWORD:
                 hashed = pwd_context.hash(INITIAL_ADMIN_PASSWORD)
                 conn.execute(
-                    "INSERT INTO utenti (username, nome, password_hash, is_admin, is_editor) VALUES (?,?,?,1,1)",
+                    "INSERT INTO utenti (username, nome, password_hash, is_admin, is_editor, is_team_editor) VALUES (?,?,?,1,1,1)",
                     (INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_NAME, hashed))
 
         else:
@@ -360,8 +375,13 @@ def init_db():
             for col_def in [
                 "ALTER TABLE utenti ADD COLUMN IF NOT EXISTS is_admin INTEGER DEFAULT 0",
                 "ALTER TABLE utenti ADD COLUMN IF NOT EXISTS is_editor INTEGER DEFAULT 0",
+                "ALTER TABLE utenti ADD COLUMN IF NOT EXISTS is_team_editor INTEGER DEFAULT 0",
                 "ALTER TABLE team_turni ADD COLUMN IF NOT EXISTS flags_base TEXT DEFAULT ''",
                 "ALTER TABLE team_turni ADD COLUMN IF NOT EXISTS flags_var TEXT DEFAULT ''",
+                "ALTER TABLE team_template_reperibili_weekly ADD COLUMN IF NOT EXISTS fest_m1_pos INTEGER",
+                "ALTER TABLE team_template_reperibili_weekly ADD COLUMN IF NOT EXISTS fest_m2_pos INTEGER",
+                "ALTER TABLE team_template_reperibili_weekly ADD COLUMN IF NOT EXISTS fest_p1_pos INTEGER",
+                "ALTER TABLE team_template_reperibili_weekly ADD COLUMN IF NOT EXISTS fest_p2_pos INTEGER",
             ]:
                 try:
                     ex(conn, col_def)
@@ -385,8 +405,8 @@ def init_db():
                 conn.rollback()
             if (fetchone(conn, "SELECT COUNT(*) as cnt FROM utenti") or {}).get("cnt", 0) == 0 and INITIAL_ADMIN_USERNAME and INITIAL_ADMIN_PASSWORD:
                 ex(conn,
-                   "INSERT INTO utenti (username, nome, password_hash, is_admin, is_editor) VALUES (?,?,?,?,?)",
-                   (INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_NAME, pwd_context.hash(INITIAL_ADMIN_PASSWORD), 1, 1))
+                   "INSERT INTO utenti (username, nome, password_hash, is_admin, is_editor, is_team_editor) VALUES (?,?,?,?,?,?)",
+                   (INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_NAME, pwd_context.hash(INITIAL_ADMIN_PASSWORD), 1, 1, 1))
 
         conn.commit()
     finally:
@@ -423,6 +443,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             "nome": user.get("nome"),
             "is_admin": bool(user.get("is_admin")),
             "is_editor": bool(user.get("is_editor")),
+            "is_team_editor": bool(user.get("is_team_editor")),
             "token_is_admin": bool(payload.get("is_admin", False)),
         }
     except JWTError:
@@ -436,6 +457,11 @@ def require_admin(user=Depends(get_current_user)):
 def require_editor(user=Depends(get_current_user)):
     if not user.get("is_editor") and not user.get("is_admin"):
         raise HTTPException(403, "Accesso riservato agli editor")
+    return user
+
+def require_team_editor(user=Depends(get_current_user)):
+    if not user.get("is_team_editor") and not user.get("is_admin"):
+        raise HTTPException(403, "Accesso riservato agli editor team")
     return user
 
 def get_user_settings(user_id, conn):
@@ -532,10 +558,175 @@ class TeamTemplateReperibiliInput(BaseModel):
     rep1_pos: Optional[int] = None
     rep2_pos: Optional[int] = None
     rep3_pos: Optional[int] = None
+    fest_m1_pos: Optional[int] = None
+    fest_m2_pos: Optional[int] = None
+    fest_p1_pos: Optional[int] = None
+    fest_p2_pos: Optional[int] = None
 
 class TeamTemplateWeekInput(BaseModel):
     posizioni: dict[str, List[TeamTemplatePosizioneInput]]
     reperibili: dict[str, TeamTemplateReperibiliInput] = {}
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
+def _parse_iso_date(value: Optional[str]) -> Optional[date]:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except Exception:
+        return None
+
+
+def _date_in_range(d: date, start_obj: Optional[date], end_obj: Optional[date]) -> bool:
+    if start_obj and end_obj:
+        return start_obj <= d <= end_obj
+    if start_obj:
+        return d >= start_obj
+    if end_obj:
+        return d <= end_obj
+    return True
+
+
+def _clear_team_schedule_in_range(conn, start_date_str: Optional[str], end_date_str: Optional[str]):
+    start_obj = _parse_iso_date(start_date_str)
+    end_obj = _parse_iso_date(end_date_str)
+    if start_obj and end_obj and end_obj < start_obj:
+        start_obj, end_obj = end_obj, start_obj
+
+    if start_obj and end_obj:
+        bounds = (start_obj.isoformat(), end_obj.isoformat())
+        ex(conn, "DELETE FROM team_turni WHERE data >= ? AND data <= ?", bounds)
+        ex(conn, "DELETE FROM team_colonne_destra WHERE data >= ? AND data <= ?", bounds)
+        return
+    if start_obj:
+        ex(conn, "DELETE FROM team_turni WHERE data >= ?", (start_obj.isoformat(),))
+        ex(conn, "DELETE FROM team_colonne_destra WHERE data >= ?", (start_obj.isoformat(),))
+        return
+    if end_obj:
+        ex(conn, "DELETE FROM team_turni WHERE data <= ?", (end_obj.isoformat(),))
+        ex(conn, "DELETE FROM team_colonne_destra WHERE data <= ?", (end_obj.isoformat(),))
+        return
+
+    ex(conn, "DELETE FROM team_turni")
+    ex(conn, "DELETE FROM team_colonne_destra")
+
+
+def _compute_team_template_slot(template_map: dict, d: date, posizione: int, operator_count: int,
+                                start_week_monday: Optional[date]) -> dict:
+    if not start_week_monday or operator_count <= 0:
+        return {"turno_base": "", "turno_var": "", "flags": ""}
+    dow = d.weekday()
+    cur_mon = d - timedelta(days=d.weekday())
+    sett_idx = (cur_mon - start_week_monday).days // 7
+    sett_ciclo = (sett_idx % operator_count) + 1
+    pos_orig = ((posizione + sett_ciclo - 2) % operator_count) + 1
+    tpl_row = template_map.get(dow, {}).get(pos_orig, {})
+    return {
+        "turno_base": tpl_row.get("turno_base", "") or "",
+        "turno_var": tpl_row.get("turno_var", "") or "",
+        "flags": tpl_row.get("flags", "") or "",
+    }
+
+
+def _compute_team_rep_defaults(rep_template: dict, d: date, operator_count: int,
+                               start_week_monday: Optional[date]) -> dict:
+    defaults = {
+        "rep1": "", "rep2": "", "rep3": "",
+        "fest_m1": "", "fest_m2": "", "fest_p1": "", "fest_p2": "",
+    }
+    if not start_week_monday or operator_count <= 0:
+        return defaults
+    dow = d.weekday()
+    if dow not in rep_template:
+        return defaults
+    cur_mon = d - timedelta(days=d.weekday())
+    sett_idx = (cur_mon - start_week_monday).days // 7
+    field_map = {
+        "rep1": "rep1",
+        "rep2": "rep2",
+        "rep3": "rep3",
+        "fest_m1": "fest_m1",
+        "fest_m2": "fest_m2",
+        "fest_p1": "fest_p1",
+        "fest_p2": "fest_p2",
+    }
+    for key, base_pos in rep_template.get(dow, {}).items():
+        if base_pos:
+            mapped = field_map.get(key)
+            if mapped:
+                defaults[mapped] = str(((int(base_pos) - sett_idx - 1) % operator_count) + 1)
+    return defaults
+
+
+def _preserve_team_schedule_outside_range(conn, ops: List[dict], template_map: dict, rep_template: dict,
+                                          old_start: Optional[str], old_end: Optional[str],
+                                          new_start: Optional[str], new_end: Optional[str]):
+    old_start_obj = _parse_iso_date(old_start)
+    old_end_obj = _parse_iso_date(old_end)
+    new_start_obj = _parse_iso_date(new_start)
+    new_end_obj = _parse_iso_date(new_end)
+    if old_start_obj and old_end_obj and old_end_obj < old_start_obj:
+        old_start_obj, old_end_obj = old_end_obj, old_start_obj
+    if new_start_obj and new_end_obj and new_end_obj < new_start_obj:
+        new_start_obj, new_end_obj = new_end_obj, new_start_obj
+    if not old_start_obj:
+        return
+
+    operator_count = len(ops)
+    if operator_count <= 0:
+        return
+
+    start_week_monday = old_start_obj - timedelta(days=old_start_obj.weekday())
+    horizon_start = date(2024, 1, 1)
+    horizon_end = date(2030, 12, 31)
+    existing_turni = {
+        (r["data"], r["operatore_id"])
+        for r in fetchall(conn, "SELECT data, operatore_id FROM team_turni WHERE data >= ? AND data <= ?",
+                          (horizon_start.isoformat(), horizon_end.isoformat()))
+    }
+    existing_cols = {
+        r["data"]
+        for r in fetchall(conn, "SELECT data FROM team_colonne_destra WHERE data >= ? AND data <= ?",
+                          (horizon_start.isoformat(), horizon_end.isoformat()))
+    }
+    now = datetime.now().isoformat()[:19]
+    d = horizon_start
+    while d <= horizon_end:
+        old_in_range = _date_in_range(d, old_start_obj, old_end_obj)
+        new_in_range = _date_in_range(d, new_start_obj, new_end_obj)
+        if old_in_range and not new_in_range:
+            data_str = d.isoformat()
+            for op in ops:
+                key = (data_str, op["id"])
+                if key in existing_turni:
+                    continue
+                tpl = _compute_team_template_slot(template_map, d, op["posizione"], operator_count, start_week_monday)
+                if not (tpl["turno_base"] or tpl["turno_var"] or tpl["flags"]):
+                    continue
+                ex(conn, """INSERT INTO team_turni
+                       (data, operatore_id, turno_base, turno_var, flags, flags_base, flags_var, modificato_da, modificato_il)
+                       VALUES (?,?,?,?,?,?,?,?,?)""",
+                   (data_str, op["id"], tpl["turno_base"], tpl["turno_var"], tpl["flags"], tpl["flags"], "", "template-preserve", now))
+                existing_turni.add(key)
+
+            if data_str not in existing_cols:
+                rep_defaults = _compute_team_rep_defaults(rep_template, d, operator_count, start_week_monday)
+                if rep_defaults["rep1"] or rep_defaults["rep2"] or rep_defaults["rep3"]:
+                    ex(conn, """INSERT INTO team_colonne_destra
+                           (data, rep1, rep2, rep3, fest_m1, fest_m2, fest_p1, fest_p2)
+                           VALUES (?,?,?,?,?,?,?,?)""",
+                       (data_str, rep_defaults["rep1"], rep_defaults["rep2"], rep_defaults["rep3"],
+                        rep_defaults["fest_m1"], rep_defaults["fest_m2"], rep_defaults["fest_p1"], rep_defaults["fest_p2"]))
+                    existing_cols.add(data_str)
+                elif rep_defaults["fest_m1"] or rep_defaults["fest_m2"] or rep_defaults["fest_p1"] or rep_defaults["fest_p2"]:
+                    ex(conn, """INSERT INTO team_colonne_destra
+                           (data, rep1, rep2, rep3, fest_m1, fest_m2, fest_p1, fest_p2)
+                           VALUES (?,?,?,?,?,?,?,?)""",
+                       (data_str, "", "", "", rep_defaults["fest_m1"], rep_defaults["fest_m2"], rep_defaults["fest_p1"], rep_defaults["fest_p2"]))
+                    existing_cols.add(data_str)
+        d += timedelta(days=1)
 
 # ─── Auth endpoints ────────────────────────────────────────────────────────────
 @app.post("/api/auth/register")
@@ -583,6 +774,7 @@ def me(current_user=Depends(get_current_user)):
         "nome": current_user.get("nome"),
         "is_admin": bool(current_user.get("is_admin")),
         "is_editor": bool(current_user.get("is_editor")),
+        "is_team_editor": bool(current_user.get("is_team_editor")),
     }
 
 @app.post("/api/auth/change-password")
@@ -618,7 +810,7 @@ async def log_page_visit(request: Request):
 @app.get("/api/admin/utenti")
 def get_utenti(admin=Depends(require_admin)):
     conn = get_db()
-    rows = fetchall(conn, "SELECT id, username, nome, is_admin, is_editor, created_at FROM utenti ORDER BY created_at")
+    rows = fetchall(conn, "SELECT id, username, nome, is_admin, is_editor, is_team_editor, created_at FROM utenti ORDER BY created_at")
     conn.close()
     return rows
 
@@ -641,6 +833,16 @@ def toggle_editor(user_id: int, admin=Depends(require_admin)):
     ex(conn, "UPDATE utenti SET is_editor=? WHERE id=?", (new_val, user_id))
     conn.commit(); conn.close()
     return {"ok": True, "is_editor": bool(new_val)}
+
+@app.post("/api/admin/utenti/{user_id}/team-editor")
+def toggle_team_editor(user_id: int, admin=Depends(require_admin)):
+    conn = get_db()
+    u = fetchone(conn, "SELECT is_team_editor, username FROM utenti WHERE id=?", (user_id,))
+    if not u: raise HTTPException(404, "Utente non trovato")
+    new_val = 0 if u.get("is_team_editor") else 1
+    ex(conn, "UPDATE utenti SET is_team_editor=? WHERE id=?", (new_val, user_id))
+    conn.commit(); conn.close()
+    return {"ok": True, "is_team_editor": bool(new_val)}
 
 @app.delete("/api/admin/utenti/{user_id}")
 def delete_user(user_id: int, admin=Depends(require_admin)):
@@ -1085,7 +1287,7 @@ def get_busta_paga(anno: int, mese: int, user=Depends(get_current_user)):
 # ─── Team: operatori ───────────────────────────────────────────────────────────
 @app.get("/api/team/me")
 def team_me(user=Depends(get_current_user)):
-    return {"is_editor": bool(user.get("is_editor")) or bool(user.get("is_admin")), "is_admin": bool(user.get("is_admin"))}
+    return {"is_editor": bool(user.get("is_team_editor")) or bool(user.get("is_admin")), "is_admin": bool(user.get("is_admin"))}
 
 @app.get("/api/team/operatori")
 def get_team_operatori(user=Depends(get_current_user)):
@@ -1095,7 +1297,7 @@ def get_team_operatori(user=Depends(get_current_user)):
     return ops
 
 @app.post("/api/team/operatori")
-def save_operatori(payload: TeamOperatoriInput, user=Depends(require_editor)):
+def save_operatori(payload: TeamOperatoriInput, user=Depends(require_team_editor)):
     conn = get_db()
     existing = fetchall(conn, "SELECT id, posizione FROM team_operatori")
     by_position = {row["posizione"]: row for row in existing}
@@ -1114,11 +1316,17 @@ def save_operatori(payload: TeamOperatoriInput, user=Depends(require_editor)):
     for posizione, row in by_position.items():
         if posizione not in active_positions:
             ex(conn, "UPDATE team_operatori SET attivo=0 WHERE id=?", (row["id"],))
+    max_active_position = max(active_positions) if active_positions else 0
+    ex(conn, "DELETE FROM team_template_weekly WHERE posizione > ?", (max_active_position,))
+    for campo in ("rep1_pos", "rep2_pos", "rep3_pos", "fest_m1_pos", "fest_m2_pos", "fest_p1_pos", "fest_p2_pos"):
+        ex(conn,
+           f"UPDATE team_template_reperibili_weekly SET {campo}=NULL WHERE COALESCE({campo}, 0) > ?",
+           (max_active_position,))
     conn.commit(); conn.close()
     return {"ok": True}
 
 @app.put("/api/team/operatori/{op_id}")
-def update_team_operatore(op_id: int, payload: TeamOperatoreUpdateInput, user=Depends(require_editor)):
+def update_team_operatore(op_id: int, payload: TeamOperatoreUpdateInput, user=Depends(require_team_editor)):
     conn = get_db()
     ex(conn, "UPDATE team_operatori SET nome=?, posizione=? WHERE id=?",
        (payload.nome.strip(), payload.posizione, op_id))
@@ -1126,7 +1334,7 @@ def update_team_operatore(op_id: int, payload: TeamOperatoreUpdateInput, user=De
     return {"ok": True}
 
 @app.delete("/api/team/operatori/{op_id}")
-def delete_team_operatore(op_id: int, user=Depends(require_editor)):
+def delete_team_operatore(op_id: int, user=Depends(require_team_editor)):
     conn = get_db()
     ex(conn, "UPDATE team_operatori SET attivo=0 WHERE id=?", (op_id,))
     conn.commit(); conn.close()
@@ -1156,9 +1364,20 @@ def get_team_turni(anno: int, mese: int,
                 "rep1": r.get("rep1_pos"),
                 "rep2": r.get("rep2_pos"),
                 "rep3": r.get("rep3_pos"),
+                "fest_m1": r.get("fest_m1_pos"),
+                "fest_m2": r.get("fest_m2_pos"),
+                "fest_p1": r.get("fest_p1_pos"),
+                "fest_p2": r.get("fest_p2_pos"),
             }
             for r in rep_template_rows
         }
+
+        template_cfg = fetchone(conn, "SELECT start_date, end_date FROM team_template_config WHERE id=1")
+        if template_cfg:
+            if start_date is None:
+                start_date = template_cfg.get("start_date") or None
+            if end_date is None:
+                end_date = template_cfg.get("end_date") or None
 
         ops = fetchall(conn, "SELECT * FROM team_operatori WHERE attivo=1 ORDER BY posizione")
         operator_count = max(len(ops), 1)
@@ -1241,13 +1460,11 @@ def get_team_turni(anno: int, mese: int,
                 })
 
             col = col_idx.get(data, {})
-            rep_defaults = {"rep1": "", "rep2": "", "rep3": ""}
+            rep_defaults = {"rep1": "", "rep2": "", "rep3": "", "fest_m1": "", "fest_m2": "", "fest_p1": "", "fest_p2": ""}
             if in_range and start_week_monday and dow in rep_template and operator_count > 0:
                 cur_mon = d - timedelta(days=d.weekday())
                 sett_idx = (cur_mon - start_week_monday).days // 7
-                for key, base_pos in rep_template.get(dow, {}).items():
-                    if base_pos:
-                        rep_defaults[key] = str(((int(base_pos) - sett_idx - 1) % operator_count) + 1)
+                rep_defaults = _compute_team_rep_defaults(rep_template, d, operator_count, start_week_monday)
             giorni.append({
                 "data": data, "giorno": g, "dow": dow,
                 "is_domenica": dow == 6, "is_sabato": dow == 5, "is_festivo": is_fest,
@@ -1256,8 +1473,10 @@ def get_team_turni(anno: int, mese: int,
                     "rep1": col.get("rep1","") or rep_defaults["rep1"],
                     "rep2": col.get("rep2","") or rep_defaults["rep2"],
                     "rep3": col.get("rep3","") or rep_defaults["rep3"],
-                    "fest_m1": col.get("fest_m1",""), "fest_m2": col.get("fest_m2",""),
-                    "fest_p1": col.get("fest_p1",""), "fest_p2": col.get("fest_p2",""),
+                    "fest_m1": col.get("fest_m1","") or rep_defaults["fest_m1"],
+                    "fest_m2": col.get("fest_m2","") or rep_defaults["fest_m2"],
+                    "fest_p1": col.get("fest_p1","") or rep_defaults["fest_p1"],
+                    "fest_p2": col.get("fest_p2","") or rep_defaults["fest_p2"],
                 }
             })
 
@@ -1270,7 +1489,7 @@ def get_team_turni(anno: int, mese: int,
 
 
 @app.post("/api/team/turni")
-def set_team_turni(payload: TeamCellaInput, user=Depends(require_editor)):
+def set_team_turni(payload: TeamCellaInput, user=Depends(require_team_editor)):
     """
     Salva un turno team. Se col='var', aggiorna solo turno_var preservando turno_base esistente.
     Se col='base', aggiorna solo turno_base preservando turno_var esistente.
@@ -1336,7 +1555,7 @@ def set_team_turni(payload: TeamCellaInput, user=Depends(require_editor)):
     return {"ok": True, "propagati": 0}
 
 @app.delete("/api/team/turni/{data}/{op_id}")
-def delete_team_turno(data: str, op_id: int, user=Depends(require_editor)):
+def delete_team_turno(data: str, op_id: int, user=Depends(require_team_editor)):
     conn = get_db()
     ex(conn, "DELETE FROM team_turni WHERE data=? AND operatore_id=?", (data, op_id))
     conn.commit(); conn.close()
@@ -1344,7 +1563,7 @@ def delete_team_turno(data: str, op_id: int, user=Depends(require_editor)):
 
 # ─── Team: colonne destra ──────────────────────────────────────────────────────
 @app.post("/api/team/colonne-destra")
-def set_colonne_destra(payload: TeamColonneDestraInput, user=Depends(require_editor)):
+def set_colonne_destra(payload: TeamColonneDestraInput, user=Depends(require_team_editor)):
     data = payload.data
     conn = get_db()
     vals = (data,
@@ -1366,6 +1585,7 @@ def get_team_template_week(user=Depends(get_current_user)):
     conn = get_db()
     rows = fetchall(conn, "SELECT * FROM team_template_weekly ORDER BY giorno_settimana, posizione")
     rep_rows = fetchall(conn, "SELECT * FROM team_template_reperibili_weekly ORDER BY giorno_settimana")
+    cfg = fetchone(conn, "SELECT start_date, end_date FROM team_template_config WHERE id=1")
     conn.close()
     template = {}
     for r in rows:
@@ -1378,14 +1598,57 @@ def get_team_template_week(user=Depends(get_current_user)):
             "rep1_pos": r.get("rep1_pos"),
             "rep2_pos": r.get("rep2_pos"),
             "rep3_pos": r.get("rep3_pos"),
+            "fest_m1_pos": r.get("fest_m1_pos"),
+            "fest_m2_pos": r.get("fest_m2_pos"),
+            "fest_p1_pos": r.get("fest_p1_pos"),
+            "fest_p2_pos": r.get("fest_p2_pos"),
         }
         for r in rep_rows
     }
-    return {"posizioni": template, "reperibili": reperibili}
+    return {
+        "posizioni": template,
+        "reperibili": reperibili,
+        "start_date": (cfg or {}).get("start_date", "") or "",
+        "end_date": (cfg or {}).get("end_date", "") or "",
+    }
 
 @app.post("/api/team/template-week")
-def save_team_template_week(payload: TeamTemplateWeekInput, user=Depends(require_editor)):
+def save_team_template_week(payload: TeamTemplateWeekInput, user=Depends(require_team_editor)):
     conn = get_db()
+    old_rows = fetchall(conn, "SELECT * FROM team_template_weekly ORDER BY giorno_settimana, posizione")
+    old_rep_rows = fetchall(conn, "SELECT * FROM team_template_reperibili_weekly ORDER BY giorno_settimana")
+    old_cfg = fetchone(conn, "SELECT start_date, end_date FROM team_template_config WHERE id=1")
+    ops = fetchall(conn, "SELECT * FROM team_operatori WHERE attivo=1 ORDER BY posizione")
+
+    old_template = {}
+    for r in old_rows:
+        g = r["giorno_settimana"]
+        if g not in old_template:
+            old_template[g] = {}
+        old_template[g][r["posizione"]] = {
+            "turno_base": r["turno_base"] or "",
+            "turno_var": r["turno_var"] or "",
+            "flags": r["flags"] or "",
+        }
+    old_reperibili = {
+        r["giorno_settimana"]: {
+            "rep1": r.get("rep1_pos"),
+            "rep2": r.get("rep2_pos"),
+            "rep3": r.get("rep3_pos"),
+            "fest_m1": r.get("fest_m1_pos"),
+            "fest_m2": r.get("fest_m2_pos"),
+            "fest_p1": r.get("fest_p1_pos"),
+            "fest_p2": r.get("fest_p2_pos"),
+        }
+        for r in old_rep_rows
+    }
+    _preserve_team_schedule_outside_range(
+        conn, ops, old_template, old_reperibili,
+        (old_cfg or {}).get("start_date"), (old_cfg or {}).get("end_date"),
+        payload.start_date, payload.end_date
+    )
+    _clear_team_schedule_in_range(conn, payload.start_date, payload.end_date)
+
     ex(conn, "DELETE FROM team_template_weekly")
     ex(conn, "DELETE FROM team_template_reperibili_weekly")
     for giorno_str, posizioni in payload.posizioni.items():
@@ -1395,9 +1658,16 @@ def save_team_template_week(payload: TeamTemplateWeekInput, user=Depends(require
                (giorno, pos.posizione, pos.turno_base or "", pos.turno_var or "", pos.flags or ""))
     for giorno_str, rep in payload.reperibili.items():
         giorno = int(giorno_str)
-        ex(conn, """INSERT INTO team_template_reperibili_weekly (giorno_settimana, rep1_pos, rep2_pos, rep3_pos)
-           VALUES (?,?,?,?)""",
-           (giorno, rep.rep1_pos, rep.rep2_pos, rep.rep3_pos))
+        ex(conn, """INSERT INTO team_template_reperibili_weekly
+           (giorno_settimana, rep1_pos, rep2_pos, rep3_pos, fest_m1_pos, fest_m2_pos, fest_p1_pos, fest_p2_pos)
+           VALUES (?,?,?,?,?,?,?,?)""",
+           (giorno, rep.rep1_pos, rep.rep2_pos, rep.rep3_pos,
+            rep.fest_m1_pos, rep.fest_m2_pos, rep.fest_p1_pos, rep.fest_p2_pos))
+    ex(conn,
+       """INSERT INTO team_template_config (id, start_date, end_date)
+          VALUES (1, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET start_date=excluded.start_date, end_date=excluded.end_date""",
+       (payload.start_date or None, payload.end_date or None))
     conn.commit(); conn.close()
     return {"ok": True}
 
